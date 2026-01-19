@@ -21,7 +21,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "uart_queue.h"
+#include "json_com.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -45,6 +46,9 @@ UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
 uint32_t lastToggleTime = 0;
+UART_Context uart_ctx;
+JSON_Context json_ctx;
+uint32_t last_json_tick = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -96,6 +100,14 @@ int main(void)
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
   lastToggleTime = HAL_GetTick();
+  
+  // Initialize UART Queue for JSON communication
+  UART_Queue_Init(&uart_ctx, &huart1);
+  
+  // Initialize JSON Communication Library (Device ID = 1)
+  JSON_COM_Init(&json_ctx, &uart_ctx, 1);
+  
+  last_json_tick = HAL_GetTick();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -105,7 +117,18 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+    // Process JSON communication (reads from UART, parses XBee frames, handles JSON commands)
+    JSON_COM_Process(&json_ctx);
+    
+    // Periodic tick for timeout handling (every 100ms)
     uint32_t currentTime = HAL_GetTick();
+    if ((currentTime - last_json_tick) >= 100)
+    {
+      JSON_COM_Tick(&json_ctx);
+      last_json_tick = currentTime;
+    }
+    
+    // LED toggle (every 1000ms)
     if ((currentTime - lastToggleTime) >= 1000)
     {
       HAL_GPIO_TogglePin(LD_RUN_GPIO_Port, LD_RUN_Pin);
