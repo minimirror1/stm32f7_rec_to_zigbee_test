@@ -140,7 +140,7 @@ bool App_Move(uint8_t device_id) {
     return true;  /* Mock always succeeds */
 }
 
-bool App_MotionStart(uint8_t device_id) {
+bool App_MotionPlay(uint8_t device_id) {
     (void)device_id;
     return true;  /* Mock always succeeds */
 }

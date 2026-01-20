@@ -23,6 +23,8 @@
 /* USER CODE BEGIN Includes */
 #include "uart_queue.h"
 #include "json_com.h"
+#include "xbee_api.h"
+#include <string.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -108,6 +110,12 @@ int main(void)
   JSON_COM_Init(&json_ctx, &uart_ctx, 1);
   
   last_json_tick = HAL_GetTick();
+  
+  // Send "hello world" via XBee (broadcast) before entering main loop
+  const char *hello_msg = "hello world";
+  xbee_send_data_no_wait(&json_ctx.xbee, XBEE_ADDR64_BROADCAST, 
+                         (const uint8_t*)hello_msg, strlen(hello_msg));
+  
   /* USER CODE END 2 */
 
   /* Infinite loop */

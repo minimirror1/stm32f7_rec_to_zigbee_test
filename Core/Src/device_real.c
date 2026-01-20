@@ -65,13 +65,13 @@ bool __attribute__((weak)) App_Move(uint8_t device_id) {
  ******************************************************************************/
 
 /**
- * @brief Start motion sequence
+ * @brief Play motion sequence
  * @param device_id Target device ID
  * @return true on success, false on failure
  *
  * Default implementation: Not implemented (returns false)
  */
-bool __attribute__((weak)) App_MotionStart(uint8_t device_id) {
+bool __attribute__((weak)) App_MotionPlay(uint8_t device_id) {
     (void)device_id;
     return false;  // Not implemented
 }
