@@ -73,7 +73,7 @@ void Error_Handler(void);
 #define LD_CAN_RX_GPIO_Port GPIOD
 
 /* USER CODE BEGIN Private defines */
-
+#define USE_MOCK_DEVICE
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

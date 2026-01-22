@@ -12,7 +12,7 @@
 
 #include "main.h"
 
-#if USE_MOCK_DEVICE
+#ifdef USE_MOCK_DEVICE
 
 #include "device_hal.h"
 #include <string.h>
