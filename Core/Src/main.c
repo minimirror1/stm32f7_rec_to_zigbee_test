@@ -21,8 +21,11 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+/******************************************************************************/
+/* stm32_json_com: required includes                                          */
 #include "uart_queue.h"
 #include "binary_com.h"
+/******************************************************************************/
 #include <string.h>
 /* USER CODE END Includes */
 
@@ -47,9 +50,13 @@ UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
 uint32_t lastToggleTime = 0;
+
+/******************************************************************************/
+/* stm32_json_com: context variables                                          */
 UART_Context uart_ctx;
 BinaryContext bin_ctx;
 uint32_t last_bin_tick = 0;
+/******************************************************************************/
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -102,13 +109,12 @@ int main(void)
   /* USER CODE BEGIN 2 */
   lastToggleTime = HAL_GetTick();
   
-  // Initialize UART Queue for Binary communication
-  UART_Queue_Init(&uart_ctx, &huart1);
-
-  // Initialize Binary Communication Library (Device ID = 1)
-  BIN_COM_Init(&bin_ctx, &uart_ctx, 1);
-
+  /***************************************************************************/
+  /* stm32_json_com: initialization                                          */
+  UART_Queue_Init(&uart_ctx, &huart1);         /* UART 큐 초기화 (huart1)    */
+  BIN_COM_Init(&bin_ctx, &uart_ctx, 1);        /* Binary COM 초기화, ID=1    */
   last_bin_tick = HAL_GetTick();
+  /***************************************************************************/
   
   /* USER CODE END 2 */
 
@@ -119,16 +125,17 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    // Process Binary communication (reads from UART, parses XBee frames, handles Binary commands)
-    BIN_COM_Process(&bin_ctx);
+    /*************************************************************************/
+    /* stm32_json_com: main loop processing                                  */
+    BIN_COM_Process(&bin_ctx);               /* 매 루프: UART 수신 및 처리   */
 
-    // Periodic tick for timeout handling (every 100ms)
     uint32_t currentTime = HAL_GetTick();
     if ((currentTime - last_bin_tick) >= 100)
     {
-      BIN_COM_Tick(&bin_ctx);
+      BIN_COM_Tick(&bin_ctx);               /* 100ms 주기: 타임아웃 처리    */
       last_bin_tick = currentTime;
     }
+    /*************************************************************************/
     
     // LED toggle (every 1000ms)
     if ((currentTime - lastToggleTime) >= 1000)
