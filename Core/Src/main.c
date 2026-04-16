@@ -22,8 +22,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "uart_queue.h"
-#include "json_com.h"
-#include "xbee_api.h"
+#include "binary_com.h"
 #include <string.h>
 /* USER CODE END Includes */
 
@@ -49,8 +48,8 @@ UART_HandleTypeDef huart1;
 /* USER CODE BEGIN PV */
 uint32_t lastToggleTime = 0;
 UART_Context uart_ctx;
-JSON_Context json_ctx;
-uint32_t last_json_tick = 0;
+BinaryContext bin_ctx;
+uint32_t last_bin_tick = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -103,18 +102,13 @@ int main(void)
   /* USER CODE BEGIN 2 */
   lastToggleTime = HAL_GetTick();
   
-  // Initialize UART Queue for JSON communication
+  // Initialize UART Queue for Binary communication
   UART_Queue_Init(&uart_ctx, &huart1);
-  
-  // Initialize JSON Communication Library (Device ID = 1)
-  JSON_COM_Init(&json_ctx, &uart_ctx, 1);
-  
-  last_json_tick = HAL_GetTick();
-  
-  // Send "hello world" via XBee (broadcast) before entering main loop
-  const char *hello_msg = "hello world";
-  xbee_send_data_no_wait(&json_ctx.xbee, XBEE_ADDR64_BROADCAST, 
-                         (const uint8_t*)hello_msg, strlen(hello_msg));
+
+  // Initialize Binary Communication Library (Device ID = 1)
+  BIN_COM_Init(&bin_ctx, &uart_ctx, 1);
+
+  last_bin_tick = HAL_GetTick();
   
   /* USER CODE END 2 */
 
@@ -125,15 +119,15 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    // Process JSON communication (reads from UART, parses XBee frames, handles JSON commands)
-    JSON_COM_Process(&json_ctx);
-    
+    // Process Binary communication (reads from UART, parses XBee frames, handles Binary commands)
+    BIN_COM_Process(&bin_ctx);
+
     // Periodic tick for timeout handling (every 100ms)
     uint32_t currentTime = HAL_GetTick();
-    if ((currentTime - last_json_tick) >= 100)
+    if ((currentTime - last_bin_tick) >= 100)
     {
-      JSON_COM_Tick(&json_ctx);
-      last_json_tick = currentTime;
+      BIN_COM_Tick(&bin_ctx);
+      last_bin_tick = currentTime;
     }
     
     // LED toggle (every 1000ms)
