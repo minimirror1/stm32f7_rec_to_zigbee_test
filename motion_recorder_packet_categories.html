@@ -14,6 +14,8 @@
 .pkt-desc{font-size:12px;color:var(--color-text-secondary);line-height:1.55}
 .pkt-detail{font-size:12px;color:var(--color-text-tertiary);margin-top:.3rem;line-height:1.5}
 .badge{font-size:11px;padding:2px 7px;border-radius:4px;font-weight:500;white-space:nowrap}
+.badge-link{border:none;cursor:pointer}
+.badge-link:hover{filter:brightness(.96)}
 .b-cmd{background:var(--color-background-info);color:var(--color-text-info)}
 .b-rsp{background:var(--color-background-success);color:var(--color-text-success)}
 .b-evt{background:var(--color-background-warning);color:var(--color-text-warning)}
@@ -28,14 +30,55 @@ tr:last-child td{border-bottom:none}
 .tag{display:inline-block;font-size:10px;padding:1px 5px;border-radius:3px;margin-left:4px}
 .tag-opt{background:var(--color-background-secondary);color:var(--color-text-tertiary)}
 .section-note{font-size:12px;color:var(--color-text-secondary);background:var(--color-background-secondary);border-radius:6px;padding:.625rem .875rem;margin-bottom:1rem;line-height:1.6}
+.pkt-link,.table-link{font:inherit;color:inherit;background:none;border:none;padding:0;cursor:pointer;text-align:left}
+.pkt-link{text-decoration:underline;text-decoration-color:var(--color-border-tertiary);text-underline-offset:2px}
+.pkt-link:hover,.table-link:hover{color:var(--color-text-info)}
+.command-list{display:grid;grid-template-columns:1fr;gap:.75rem;margin-bottom:1rem}
+.command-linkcard{border:0.5px solid var(--color-border-tertiary);border-radius:10px;background:var(--color-background-primary);padding:.9rem 1rem}
+.command-linkbtn{display:block;width:100%;background:none;border:none;padding:0;text-align:left;cursor:pointer}
+.command-linktitle{font-size:14px;font-weight:600;color:var(--color-text-primary);margin-bottom:.3rem}
+.command-linkdesc{font-size:12px;color:var(--color-text-secondary);line-height:1.6}
+.function-card{border:0.5px solid var(--color-border-tertiary);border-radius:10px;padding:1rem;background:var(--color-background-primary);margin-bottom:.75rem}
+.function-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:.75rem}
+.function-title{font-size:15px;font-weight:600;color:var(--color-text-primary)}
+.function-sub{font-size:12px;color:var(--color-text-secondary);line-height:1.6;margin-bottom:.875rem}
+.function-grid{display:grid;grid-template-columns:1fr;gap:.85rem}
+.function-block{background:var(--color-background-secondary);border-radius:8px;padding:.75rem .875rem}
+.function-block h4{font-size:12px;font-weight:600;color:var(--color-text-primary);margin-bottom:.45rem}
+.function-block p,.function-block li{font-size:12px;color:var(--color-text-secondary);line-height:1.65}
+.function-block ul{margin:0;padding-left:1rem}
+.function-block pre{margin-top:.55rem;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:6px;padding:.65rem .75rem;overflow:auto;font-family:var(--font-mono);font-size:11px;color:var(--color-text-primary);line-height:1.6}
+.function-block code{font-family:var(--font-mono);font-size:11px}
+.function-block pre.syntax-ready{background:#16181d;border-color:#2a2f39;color:#e7edf5}
+.function-block pre.syntax-ready code{color:inherit}
+.tok-comment{color:#7f8b99}
+.tok-keyword{color:#ff7ab6}
+.tok-type{color:#82cfff}
+.tok-func{color:#78dce8}
+.tok-const{color:#ffd866}
+.tok-number{color:#ab9df2}
+.tok-string{color:#a9dc76}
+.function-block-wide{grid-column:1/-1}
+.byte-table{width:100%;border-collapse:collapse;margin-top:.5rem}
+.byte-table th,.byte-table td{padding:5px 6px;font-size:11px}
+@media (min-width: 760px){
+  .function-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .command-list{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (min-width: 1200px){
+  .function-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .command-list{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
 </style>
 
 <div class="wrap">
 <div class="tabs">
-  <button class="tab active" onclick="switchTab('motion')">모션 제어</button>
-  <button class="tab" onclick="switchTab('setting')">설정 읽기/쓰기</button>
-  <button class="tab" onclick="switchTab('system')">시스템</button>
-  <button class="tab" onclick="switchTab('summary')">전체 요약</button>
+  <button class="tab active" data-tab="motion" onclick="switchTab('motion')">모션 제어</button>
+  <button class="tab" data-tab="setting" onclick="switchTab('setting')">설정 읽기/쓰기</button>
+  <button class="tab" data-tab="system" onclick="switchTab('system')">시스템</button>
+  <button class="tab" data-tab="commands" onclick="switchTab('commands')">명령어 일람</button>
+  <button class="tab" data-tab="functions" onclick="switchTab('functions')">전체 함수</button>
+  <button class="tab" data-tab="summary" onclick="switchTab('summary')">전체 요약</button>
 </div>
 
 <!-- 모션 제어 -->
@@ -49,9 +92,10 @@ tr:last-child td{border-bottom:none}
   <div class="group">
     <div class="group-title">재생 제어</div>
     <div class="pkt">
-      <div class="pkt-top"><span class="badge b-cmd">PC→MCU 명령</span><span class="pkt-name">모션 재생 (PLAY)</span></div>
+      <div class="pkt-top"><span class="badge b-cmd">PC→MCU 명령</span><button type="button" class="pkt-name pkt-link" onclick="openFunctionDoc('functions-app-motion-play')">모션 재생 (PLAY)</button></div>
       <div class="pkt-desc">Media 폴더의 특정 모션 파일 재생 요청. MT_RP(반복재생), MT_CT(반복횟수) 설정값과 연계됨.</div>
-      <div class="pkt-detail">포함 데이터 → 모션 파일 인덱스 또는 파일명, 반복 횟수 오버라이드 여부</div>
+      <div class="pkt-detail">실제 구현 기준 요약 → <span class="mono">CMD_MOTION_CTRL(0x04)</span> 요청 안에 <span class="mono">PLAY action(0x00)</span> 1바이트만 payload로 전달됨. 전체 요청 예: <span class="mono">00 01 04 01 00 00</span></div>
+      <div class="pkt-detail">확장 기획 메모 → 모션 파일 인덱스/파일명, 반복 횟수 오버라이드 여부</div>
     </div>
     <div class="pkt">
       <div class="pkt-top"><span class="badge b-cmd">PC→MCU 명령</span><span class="pkt-name">모션 정지 (STOP)</span></div>
@@ -204,11 +248,449 @@ tr:last-child td{border-bottom:none}
   </div>
 </div>
 
+<!-- 명령어 일람 -->
+<div class="panel" id="panel-commands">
+  <div class="section-note">
+    이 탭은 실제 wire command를 빠르게 훑어보는 명령 목록과 선택된 명령 상세를 함께 보여줍니다.<br>
+    현재는 <strong>CMD_MOTION_CTRL</strong>를 먼저 정리했고, 이후 다른 cmd도 같은 방식으로 순차 추가하면 됩니다.
+  </div>
+
+  <div class="group">
+    <div class="group-title">명령 목록</div>
+    <div class="command-list">
+      <div class="command-linkcard">
+        <button type="button" class="command-linkbtn" onclick="openCommandDoc('commands-motion-ctrl-detail')">
+          <div class="command-linktitle">CMD_MOTION_CTRL</div>
+          <div class="command-linkdesc">
+            <span class="mono">cmd = 0x04</span> 이며 <span class="mono">payload[0]</span> 값으로
+            PLAY / STOP / PAUSE / SEEK 를 구분하는 모션 제어 계열 명령입니다.
+          </div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="group">
+    <div class="group-title">선택된 명령 상세</div>
+    <section class="function-card" id="commands-motion-ctrl-detail">
+      <div class="function-head">
+        <span class="badge b-cmd">PC→MCU 명령</span>
+        <span class="badge b-rw">cmd = 0x04</span>
+        <span class="function-title">CMD_MOTION_CTRL</span>
+      </div>
+      <div class="function-sub">
+        <span class="mono">CMD_MOTION_CTRL</span>는 모션 관련 제어 명령을 묶어서 처리하는 상위 cmd입니다.
+        실제 동작 종류는 payload 첫 바이트의 <span class="mono">MotionAction</span> 값으로 구분되며,
+        현재 문서는 그중 <span class="mono">PLAY / STOP / PAUSE</span>를 중심으로 설명합니다.
+      </div>
+
+      <div class="function-grid">
+        <div class="function-block">
+          <h4>명령 개요</h4>
+          <ul>
+            <li>요청 헤더는 <span class="mono">src_id | tar_id | cmd | payload_len(LE)</span> 순서입니다.</li>
+            <li><span class="mono">cmd = 0x04</span> 이면 이 패킷은 모두 <span class="mono">CMD_MOTION_CTRL</span> 로 해석됩니다.</li>
+            <li>payload 첫 바이트의 action 값이 실제 동작을 결정합니다.</li>
+            <li>즉 PLAY, STOP, PAUSE는 서로 다른 독립 cmd가 아니라 같은 cmd 안에서 <span class="mono">payload[0]</span> 값으로 구분됩니다.</li>
+          </ul>
+        </div>
+
+        <div class="function-block">
+          <h4>MotionAction 값</h4>
+          <ul>
+            <li><span class="mono">0x00 = MOTION_ACTION_PLAY</span> : 모션 재생 시작</li>
+            <li><span class="mono">0x01 = MOTION_ACTION_STOP</span> : 현재 재생 즉시 정지</li>
+            <li><span class="mono">0x02 = MOTION_ACTION_PAUSE</span> : 현재 재생 일시정지</li>
+            <li><span class="mono">0x03 = MOTION_ACTION_SEEK</span> : 지정 시간 위치 이동</li>
+            <li>이 페이지는 우선 PLAY / STOP / PAUSE를 중심으로 정리하고, SEEK는 이후 별도 상세를 추가하면 됩니다.</li>
+          </ul>
+        </div>
+
+        <div class="function-block">
+          <h4>공통 처리 흐름</h4>
+          <ul>
+            <li>통신 레이어는 먼저 <span class="mono">cmd = CMD_MOTION_CTRL</span> 인지 확인합니다.</li>
+            <li>그 다음 payload[0] 값을 읽어 PLAY / STOP / PAUSE / SEEK 중 어떤 동작인지 분기합니다.</li>
+            <li>각 action은 대응되는 app 함수로 연결되지만, 구체적인 함수 사용법은 <strong>전체 함수</strong> 탭에서 따로 설명합니다.</li>
+            <li>여기서는 명령 해석과 action 분기 자체만 명령 관점으로 봅니다.</li>
+          </ul>
+        </div>
+
+        <div class="function-block" id="commands-motion-ctrl-play">
+          <h4>payload[0] = 0x00 : PLAY</h4>
+          <ul>
+            <li>action 값은 <span class="mono">0x00</span> 입니다.</li>
+            <li>요청 예시는 <span class="mono">00 01 04 01 00 00</span> 처럼 payload 1바이트만 포함합니다.</li>
+            <li>이 값은 "모션 재생 시작 요청"으로 해석됩니다.</li>
+            <li>App 함수 사용법과 구현 책임은 <strong>전체 함수 &gt; App_MotionPlay</strong>에서 봅니다.</li>
+          </ul>
+        </div>
+
+        <div class="function-block" id="commands-motion-ctrl-stop">
+          <h4>payload[0] = 0x01 : STOP</h4>
+          <ul>
+            <li>action 값은 <span class="mono">0x01</span> 입니다.</li>
+            <li>현재 재생 중인 모션을 즉시 중단하는 용도로 사용합니다.</li>
+            <li>이 값은 "현재 재생 즉시 정지"로 해석됩니다.</li>
+            <li>함수 사용법은 이후 <strong>전체 함수</strong> 탭에 같은 형식으로 추가합니다.</li>
+          </ul>
+        </div>
+
+        <div class="function-block" id="commands-motion-ctrl-pause">
+          <h4>payload[0] = 0x02 : PAUSE</h4>
+          <ul>
+            <li>action 값은 <span class="mono">0x02</span> 입니다.</li>
+            <li>현재 재생을 잠시 멈추고, 이후 재개 가능한 상태를 유지하는 용도입니다.</li>
+            <li>이 값은 "현재 재생 일시정지"로 해석됩니다.</li>
+            <li>함수 사용법은 이후 <strong>전체 함수</strong> 탭에 같은 형식으로 추가합니다.</li>
+          </ul>
+        </div>
+
+        <div class="function-block function-block-wide">
+          <h4>요청 바이트 예시</h4>
+          <pre><code>/* PC -> MCU : PLAY 요청 */
+00 01 04 01 00 00
+
+00 = src_id
+01 = tar_id
+04 = CMD_MOTION_CTRL
+01 00 = payload_len (LE)
+00 = payload[0] = MOTION_ACTION_PLAY</code></pre>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- 전체 함수 -->
+<div class="panel" id="panel-functions">
+  <div class="section-note">
+    이 탭은 <span class="mono">App_*</span> 함수가 언제 호출되고, app 코드 작성자가 무엇을 구현해야 하는지 함수 관점으로 정리합니다.<br>
+    현재는 <strong>App_MotionPlay / Stop / Pause / Seek</strong>를 먼저 정리했고, 이후 다른 App 함수도 같은 형식으로 순차 추가하면 됩니다.
+  </div>
+
+  <div class="group">
+    <div class="group-title">함수 목록</div>
+    <div class="command-list">
+      <div class="command-linkcard">
+        <button type="button" class="command-linkbtn" onclick="openFunctionDoc('functions-app-motion-play')">
+          <div class="command-linktitle">App_MotionPlay</div>
+          <div class="command-linkdesc"><span class="mono">payload[0] = 0x00</span> 일 때 호출. 재생 시작 요청을 app 로직에 연결합니다.</div>
+        </button>
+      </div>
+
+      <div class="command-linkcard">
+        <button type="button" class="command-linkbtn" onclick="openFunctionDoc('functions-app-motion-stop')">
+          <div class="command-linktitle">App_MotionStop</div>
+          <div class="command-linkdesc"><span class="mono">payload[0] = 0x01</span> 일 때 호출. 현재 재생을 즉시 정지합니다.</div>
+        </button>
+      </div>
+
+      <div class="command-linkcard">
+        <button type="button" class="command-linkbtn" onclick="openFunctionDoc('functions-app-motion-pause')">
+          <div class="command-linktitle">App_MotionPause</div>
+          <div class="command-linkdesc"><span class="mono">payload[0] = 0x02</span> 일 때 호출. 현재 재생 위치를 유지한 채 일시정지합니다.</div>
+        </button>
+      </div>
+
+      <div class="command-linkcard">
+        <button type="button" class="command-linkbtn" onclick="openFunctionDoc('functions-app-motion-seek')">
+          <div class="command-linktitle">App_MotionSeek</div>
+          <div class="command-linkdesc"><span class="mono">payload[0] = 0x03</span> 일 때 호출. <span class="mono">time_ms</span> 위치로 이동합니다.</div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="group">
+    <div class="group-title">선택된 함수 설명</div>
+    <section class="function-card" id="functions-app-motion-play">
+      <div class="function-head">
+        <span class="badge b-cmd">App 함수</span>
+        <button type="button" class="badge badge-link b-rw" onclick="openCommandDoc('commands-motion-ctrl-detail')">called by CMD_MOTION_CTRL</button>
+        <span class="function-title">App_MotionPlay(uint8_t device_id)</span>
+      </div>
+      <div class="function-sub">
+        <span class="mono">CMD_MOTION_CTRL</span> 패킷에서 <span class="mono">payload[0] = 0x00</span> 이 들어오면
+        통신 레이어가 <span class="mono">App_MotionPlay(ctx-&gt;my_id)</span> 를 호출합니다.
+        이 함수는 "모션 재생 요청을 실제 장치 동작으로 연결하는 app 진입점"입니다.
+      </div>
+
+      <div class="function-grid">
+        <div class="function-block">
+          <h4>언제 호출되는가</h4>
+          <ul>
+            <li>PC가 <span class="mono">CMD_MOTION_CTRL</span> + <span class="mono">payload[0] = 0x00</span> 을 보내면 호출됩니다.</li>
+            <li>호출 주체는 통신 레이어이며, app 코드는 직접 패킷을 파싱하지 않습니다.</li>
+            <li>입력 인자는 현재 장치 id 하나뿐입니다.</li>
+          </ul>
+        </div>
+
+        <div class="function-block">
+          <h4>app 코드가 해야 할 일</h4>
+          <ul>
+            <li>현재 장치가 PLAY를 받을 수 있는 상태인지 확인합니다.</li>
+            <li>필요하면 반복 정책이나 현재 프로그램 상태를 읽습니다.</li>
+            <li>실제 모션 플레이어 또는 상태 머신에 재생 시작을 요청합니다.</li>
+            <li>재생 시작 수락이면 true, 시작 불가면 false를 반환합니다.</li>
+          </ul>
+        </div>
+
+        <div class="function-block">
+          <h4>하면 안 되는 일</h4>
+          <ul>
+            <li>패킷 바이트 파싱이나 <span class="mono">payload_len</span> 해석</li>
+            <li>응답 프레임 생성, UART/XBee 송신</li>
+            <li>cmd/action 상수 정의를 app 로직 내부에 다시 구현하는 일</li>
+          </ul>
+        </div>
+
+        <div class="function-block">
+          <h4>호출 결과를 PC는 어떻게 보는가</h4>
+          <ul>
+            <li>true 반환: 통신 레이어가 요청 수락으로 간주하고 성공 응답을 보냅니다.</li>
+            <li>false 반환: 통신 레이어가 실패로 간주하고 에러 응답을 보냅니다.</li>
+            <li>즉 이 함수는 "재생 완료"가 아니라 "재생 시작 요청 수락 여부"를 알려 주는 함수입니다.</li>
+          </ul>
+        </div>
+
+        <div class="function-block function-block-wide">
+          <h4>레퍼런스 코드 조각</h4>
+          <pre><code>/* 통신 레이어에서의 연결 */
+case MOTION_ACTION_PLAY:
+    /* 통신 레이어가 action을 해석한 결과를 app 함수로 전달 */
+    ok = App_MotionPlay(ctx-&gt;my_id);
+    break;</code></pre>
+          <pre><code>/* app 레이어 구현 예시 */
+bool App_MotionPlay(uint8_t device_id)
+{
+    /* 다른 장치로 잘못 들어온 호출은 거부 */
+    if (device_id != MY_DEVICE_ID) {
+        return false;
+    }
+
+    /* 초기화나 리소스 준비가 끝났는지 확인 */
+    if (!Motion_IsReady()) {
+        return false;
+    }
+
+    /* 이미 재생 중이면 중복 시작을 막음 */
+    if (Motion_IsPlaying()) {
+        return false;
+    }
+
+    /* 설정 파일 기반 반복 정책을 현재 플레이어 상태에 반영 */
+    Motion_LoadRepeatPolicyFromSettings();
+    /* 현재 선택된 프로그램의 재생 시작을 요청 */
+    return Motion_StartCurrentProgram();
+}</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <section class="function-card" id="functions-app-motion-stop">
+      <div class="function-head">
+        <span class="badge b-cmd">App 함수</span>
+        <button type="button" class="badge badge-link b-rw" onclick="openCommandDoc('commands-motion-ctrl-detail')">called by CMD_MOTION_CTRL</button>
+        <span class="function-title">App_MotionStop(uint8_t device_id)</span>
+      </div>
+      <div class="function-sub">
+        <span class="mono">CMD_MOTION_CTRL</span> 패킷에서 <span class="mono">payload[0] = 0x01</span> 이 들어오면
+        통신 레이어가 <span class="mono">App_MotionStop(ctx-&gt;my_id)</span> 를 호출합니다.
+        이 함수는 현재 재생 중인 모션을 정지 상태로 전환하는 app 진입점입니다.
+      </div>
+
+      <div class="function-grid">
+        <div class="function-block">
+          <h4>언제 호출되는가</h4>
+          <ul>
+            <li>PC가 <span class="mono">CMD_MOTION_CTRL</span> + <span class="mono">payload[0] = 0x01</span> 을 보내면 호출됩니다.</li>
+            <li>통신 레이어가 action 값을 해석한 뒤 app 함수만 호출합니다.</li>
+            <li>입력 인자는 현재 장치 id 하나입니다.</li>
+          </ul>
+        </div>
+
+        <div class="function-block">
+          <h4>app 코드가 해야 할 일</h4>
+          <ul>
+            <li>현재 재생 중인 모션이 있으면 즉시 정지 요청을 내립니다.</li>
+            <li>재생 타이머, 큐, 출력 상태 등 정지 시 함께 멈춰야 할 자원을 정리합니다.</li>
+            <li>정지 성공이면 true, 정지 불가 또는 실패면 false를 반환합니다.</li>
+          </ul>
+        </div>
+
+        <div class="function-block">
+          <h4>하면 안 되는 일</h4>
+          <ul>
+            <li>패킷 길이 검사나 action 값 해석을 app 코드에서 다시 하지 않습니다.</li>
+            <li>응답 패킷 생성이나 전송을 직접 처리하지 않습니다.</li>
+            <li>STOP 요청을 별도 cmd처럼 다시 정의하지 않습니다.</li>
+          </ul>
+        </div>
+
+        <div class="function-block function-block-wide">
+          <h4>레퍼런스 코드 조각</h4>
+          <pre><code>case MOTION_ACTION_STOP:
+    /* STOP action은 장치 ID만 넘겨 app 정지 로직으로 연결 */
+    ok = App_MotionStop(ctx-&gt;my_id);
+    break;</code></pre>
+          <pre><code>bool App_MotionStop(uint8_t device_id)
+{
+    /* 장치 ID 보호 */
+    if (device_id != MY_DEVICE_ID) {
+        return false;
+    }
+
+    /* 현재 재생 중인 모션과 관련 출력 상태를 정지 */
+    Motion_Stop();
+    /* stop 요청을 정상 수락했음을 통신 레이어에 알림 */
+    return true;
+}</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <section class="function-card" id="functions-app-motion-pause">
+      <div class="function-head">
+        <span class="badge b-cmd">App 함수</span>
+        <button type="button" class="badge badge-link b-rw" onclick="openCommandDoc('commands-motion-ctrl-detail')">called by CMD_MOTION_CTRL</button>
+        <span class="function-title">App_MotionPause(uint8_t device_id)</span>
+      </div>
+      <div class="function-sub">
+        <span class="mono">CMD_MOTION_CTRL</span> 패킷에서 <span class="mono">payload[0] = 0x02</span> 이 들어오면
+        통신 레이어가 <span class="mono">App_MotionPause(ctx-&gt;my_id)</span> 를 호출합니다.
+        이 함수는 현재 재생 위치를 유지한 채 일시정지 상태로 전환하는 app 진입점입니다.
+      </div>
+
+      <div class="function-grid">
+        <div class="function-block">
+          <h4>언제 호출되는가</h4>
+          <ul>
+            <li>PC가 <span class="mono">CMD_MOTION_CTRL</span> + <span class="mono">payload[0] = 0x02</span> 을 보내면 호출됩니다.</li>
+            <li>PLAY와 마찬가지로 패킷 파싱은 통신 레이어에서 끝나고 app 함수만 호출됩니다.</li>
+            <li>입력 인자는 현재 장치 id 하나입니다.</li>
+          </ul>
+        </div>
+
+        <div class="function-block">
+          <h4>app 코드가 해야 할 일</h4>
+          <ul>
+            <li>현재 재생 위치와 상태를 유지한 채 출력 갱신만 멈출지, 타이머까지 멈출지 정책을 정합니다.</li>
+            <li>pause를 지원하지 않거나 현재 상태에서 중단이 불가하면 false를 반환할 수 있습니다.</li>
+            <li>pause 성공이면 이후 resume 또는 재생 재개 정책과 호환되는 상태를 남겨야 합니다.</li>
+          </ul>
+        </div>
+
+        <div class="function-block">
+          <h4>하면 안 되는 일</h4>
+          <ul>
+            <li>pause를 stop처럼 처리해 재생 위치 정보를 무조건 버리지 않습니다.</li>
+            <li>응답 송신이나 상태 응답 포맷을 app 함수에서 직접 다루지 않습니다.</li>
+            <li>다른 action 값을 다시 판별하지 않습니다.</li>
+          </ul>
+        </div>
+
+        <div class="function-block function-block-wide">
+          <h4>레퍼런스 코드 조각</h4>
+          <pre><code>case MOTION_ACTION_PAUSE:
+    /* PAUSE action을 app 레이어의 일시정지 처리로 전달 */
+    ok = App_MotionPause(ctx-&gt;my_id);
+    break;</code></pre>
+          <pre><code>bool App_MotionPause(uint8_t device_id)
+{
+    /* 장치 ID 보호 */
+    if (device_id != MY_DEVICE_ID) {
+        return false;
+    }
+
+    /* 현재 위치를 유지한 채 pause 처리 */
+    return Motion_Pause();
+}</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <section class="function-card" id="functions-app-motion-seek">
+      <div class="function-head">
+        <span class="badge b-cmd">App 함수</span>
+        <button type="button" class="badge badge-link b-rw" onclick="openCommandDoc('commands-motion-ctrl-detail')">called by CMD_MOTION_CTRL</button>
+        <span class="function-title">App_MotionSeek(uint8_t device_id, uint32_t time_ms)</span>
+      </div>
+      <div class="function-sub">
+        <span class="mono">CMD_MOTION_CTRL</span> 패킷에서 <span class="mono">payload[0] = 0x03</span> 이 들어오고
+        전체 <span class="mono">payload_len = 5</span> 일 때, 통신 레이어가 <span class="mono">payload[1..4]</span> 를
+        little-endian <span class="mono">time_ms</span> 로 해석한 뒤 <span class="mono">App_MotionSeek(ctx-&gt;my_id, time_ms)</span> 를 호출합니다.
+      </div>
+
+      <div class="function-grid">
+        <div class="function-block">
+          <h4>언제 호출되는가</h4>
+          <ul>
+            <li>PC가 <span class="mono">payload[0] = 0x03</span> 과 seek 대상 시간 4바이트를 함께 보낼 때 호출됩니다.</li>
+            <li><span class="mono">payload_len != 5</span> 이면 통신 레이어에서 바로 에러 응답을 보내므로 app 함수는 호출되지 않습니다.</li>
+            <li>입력 인자는 현재 장치 id와 목표 시간 <span class="mono">time_ms</span> 입니다.</li>
+          </ul>
+        </div>
+
+        <div class="function-block">
+          <h4>app 코드가 해야 할 일</h4>
+          <ul>
+            <li><span class="mono">time_ms</span> 가 현재 모션 길이 범위 안에 있는지 검증합니다.</li>
+            <li>내부 플레이어를 해당 시간 위치로 이동시키고, 필요하면 보간 상태나 출력 캐시를 다시 맞춥니다.</li>
+            <li>seek 성공이면 true, 범위 초과나 이동 실패면 false를 반환합니다.</li>
+          </ul>
+        </div>
+
+        <div class="function-block">
+          <h4>요청 데이터 해석</h4>
+          <ul>
+            <li><span class="mono">payload[0]</span> : <span class="mono">MOTION_ACTION_SEEK (0x03)</span></li>
+            <li><span class="mono">payload[1..4]</span> : little-endian 32비트 <span class="mono">time_ms</span></li>
+            <li>예: <span class="mono">03 F4 01 00 00</span> 이면 <span class="mono">time_ms = 500</span> ms 입니다.</li>
+          </ul>
+        </div>
+
+        <div class="function-block function-block-wide">
+          <h4>레퍼런스 코드 조각</h4>
+          <pre><code>case MOTION_ACTION_SEEK:
+    /* SEEK는 action 1바이트 + time_ms 4바이트가 반드시 필요 */
+    if (payload_len != 5u) {
+        SendErrorResponse(ctx, src_id, (uint8_t)CMD_MOTION_CTRL, ERR_INVALID_INPUT, NULL);
+        return;
+    }
+    {
+        /* payload[1..4]에서 32비트 시간을 복원 */
+        uint32_t time_ms = read_u32le(payload + 1u);
+        /* 해석된 목표 시간을 app seek 함수로 전달 */
+        ok = App_MotionSeek(ctx-&gt;my_id, time_ms);
+    }
+    break;</code></pre>
+          <pre><code>bool App_MotionSeek(uint8_t device_id, uint32_t time_ms)
+{
+    /* 장치 ID 보호 */
+    if (device_id != MY_DEVICE_ID) {
+        return false;
+    }
+
+    /* 요청된 시간이 현재 모션 길이를 넘는지 확인 */
+    if (time_ms > Motion_GetDurationMs()) {
+        return false;
+    }
+
+    /* 내부 플레이어를 지정한 시간 위치로 이동 */
+    return Motion_Seek(time_ms);
+}</code></pre>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
 <!-- 전체 요약 -->
 <div class="panel" id="panel-summary">
   <table>
     <tr><th>분류</th><th>패킷명</th><th>방향</th><th>연관 SD 파일</th></tr>
-    <tr><td rowspan="5" style="color:var(--color-text-info);font-weight:500">모션 제어</td><td>모션 재생 (PLAY)</td><td><span class="badge b-cmd">PC→MCU</span></td><td><span class="mono">MT_RP, MT_CT</span></td></tr>
+    <tr><td rowspan="5" style="color:var(--color-text-info);font-weight:500">모션 제어</td><td><button type="button" class="table-link" onclick="openFunctionDoc('functions-app-motion-play')">모션 재생 (PLAY)</button></td><td><span class="badge b-cmd">PC→MCU</span></td><td><span class="mono">MT_RP, MT_CT</span></td></tr>
     <tr><td>모션 정지 (STOP)</td><td><span class="badge b-cmd">PC→MCU</span></td><td>—</td></tr>
     <tr><td>일시정지/재개 (PAUSE)</td><td><span class="badge b-cmd">PC→MCU</span></td><td>—</td></tr>
     <tr><td>재생 상태 (PLAY STATUS)</td><td><span class="badge b-evt">MCU→PC</span></td><td>—</td></tr>
@@ -237,7 +719,70 @@ tr:last-child td{border-bottom:none}
 function switchTab(id){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-  event.target.classList.add('active');
-  document.getElementById('panel-'+id).classList.add('active');
+  const tab = document.querySelector('.tab[data-tab="'+id+'"]');
+  const panel = document.getElementById('panel-'+id);
+  if (tab) tab.classList.add('active');
+  if (panel) panel.classList.add('active');
 }
+
+function openFunctionDoc(anchorId){
+  switchTab('functions');
+  const target = document.getElementById(anchorId);
+  if (target) {
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+function openCommandDoc(anchorId){
+  switchTab('commands');
+  const target = document.getElementById(anchorId);
+  if (target) {
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+function escapeHtml(text){
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function applyFunctionCodeHighlighting(){
+  const blocks = document.querySelectorAll('#panel-functions pre code');
+  blocks.forEach((block) => {
+    if (block.dataset.highlighted === 'true') return;
+
+    const raw = block.textContent || '';
+    let html = escapeHtml(raw);
+    const tokens = [];
+
+    html = html.replace(/\/\*[\s\S]*?\*\//g, (match) => {
+      const key = `___TOK${tokens.length}___`;
+      tokens.push(`<span class="tok-comment">${match}</span>`);
+      return key;
+    });
+
+    html = html.replace(/"(?:\\.|[^"\\])*"/g, (match) => {
+      const key = `___TOK${tokens.length}___`;
+      tokens.push(`<span class="tok-string">${match}</span>`);
+      return key;
+    });
+
+    html = html.replace(/\b(case|if|return|break|true|false)\b/g, '<span class="tok-keyword">$1</span>');
+    html = html.replace(/\b(bool|uint8_t|uint32_t)\b/g, '<span class="tok-type">$1</span>');
+    html = html.replace(/\b(App_[A-Za-z0-9_]+|Motion_[A-Za-z0-9_]+|SendErrorResponse|read_u32le)\b(?=\s*\()/g, '<span class="tok-func">$1</span>');
+    html = html.replace(/\b(MOTION_ACTION_[A-Z_]+|CMD_MOTION_CTRL|ERR_INVALID_INPUT|MY_DEVICE_ID|NULL)\b/g, '<span class="tok-const">$1</span>');
+    html = html.replace(/\b(0x[0-9A-Fa-f]+|\d+u?)\b/g, '<span class="tok-number">$1</span>');
+
+    html = html.replace(/___TOK(\d+)___/g, (_, index) => tokens[Number(index)]);
+
+    block.innerHTML = html;
+    block.dataset.highlighted = 'true';
+    const pre = block.closest('pre');
+    if (pre) pre.classList.add('syntax-ready');
+  });
+}
+
+applyFunctionCodeHighlighting();
 </script>
