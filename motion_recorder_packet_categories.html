@@ -1,0 +1,243 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.wrap{padding:0.5rem 0 1rem}
+.tabs{display:flex;gap:4px;border-bottom:0.5px solid var(--color-border-tertiary);margin-bottom:1.25rem}
+.tab{padding:7px 14px;font-size:13px;cursor:pointer;border:none;border-bottom:2px solid transparent;color:var(--color-text-secondary);background:none;transition:color .15s}
+.tab.active{border-bottom-color:var(--color-text-primary);color:var(--color-text-primary);font-weight:500}
+.panel{display:none}.panel.active{display:block}
+.group{margin-bottom:1.25rem}
+.group-title{font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-tertiary);margin-bottom:.625rem}
+.pkt{border:0.5px solid var(--color-border-tertiary);border-radius:8px;padding:.75rem 1rem;margin-bottom:.5rem}
+.pkt-top{display:flex;align-items:center;gap:8px;margin-bottom:.375rem}
+.pkt-name{font-size:13px;font-weight:500;color:var(--color-text-primary)}
+.pkt-desc{font-size:12px;color:var(--color-text-secondary);line-height:1.55}
+.pkt-detail{font-size:12px;color:var(--color-text-tertiary);margin-top:.3rem;line-height:1.5}
+.badge{font-size:11px;padding:2px 7px;border-radius:4px;font-weight:500;white-space:nowrap}
+.b-cmd{background:var(--color-background-info);color:var(--color-text-info)}
+.b-rsp{background:var(--color-background-success);color:var(--color-text-success)}
+.b-evt{background:var(--color-background-warning);color:var(--color-text-warning)}
+.b-rw{background:var(--color-background-danger);color:var(--color-text-danger)}
+.legend{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:1.25rem}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--color-text-secondary)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{padding:5px 8px;text-align:left;font-size:11px;font-weight:500;color:var(--color-text-secondary);background:var(--color-background-secondary);border-bottom:0.5px solid var(--color-border-tertiary)}
+td{padding:6px 8px;border-bottom:0.5px solid var(--color-border-tertiary);color:var(--color-text-primary);vertical-align:top}
+tr:last-child td{border-bottom:none}
+.mono{font-family:var(--font-mono);font-size:11px;background:var(--color-background-secondary);padding:1px 5px;border-radius:3px}
+.tag{display:inline-block;font-size:10px;padding:1px 5px;border-radius:3px;margin-left:4px}
+.tag-opt{background:var(--color-background-secondary);color:var(--color-text-tertiary)}
+.section-note{font-size:12px;color:var(--color-text-secondary);background:var(--color-background-secondary);border-radius:6px;padding:.625rem .875rem;margin-bottom:1rem;line-height:1.6}
+</style>
+
+<div class="wrap">
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('motion')">모션 제어</button>
+  <button class="tab" onclick="switchTab('setting')">설정 읽기/쓰기</button>
+  <button class="tab" onclick="switchTab('system')">시스템</button>
+  <button class="tab" onclick="switchTab('summary')">전체 요약</button>
+</div>
+
+<!-- 모션 제어 -->
+<div class="panel active" id="panel-motion">
+  <div class="legend">
+    <div class="legend-item"><span class="badge b-cmd">PC→MCU 명령</span></div>
+    <div class="legend-item"><span class="badge b-rsp">MCU→PC 응답</span></div>
+    <div class="legend-item"><span class="badge b-evt">MCU→PC 이벤트(자동)</span></div>
+  </div>
+
+  <div class="group">
+    <div class="group-title">재생 제어</div>
+    <div class="pkt">
+      <div class="pkt-top"><span class="badge b-cmd">PC→MCU 명령</span><span class="pkt-name">모션 재생 (PLAY)</span></div>
+      <div class="pkt-desc">Media 폴더의 특정 모션 파일 재생 요청. MT_RP(반복재생), MT_CT(반복횟수) 설정값과 연계됨.</div>
+      <div class="pkt-detail">포함 데이터 → 모션 파일 인덱스 또는 파일명, 반복 횟수 오버라이드 여부</div>
+    </div>
+    <div class="pkt">
+      <div class="pkt-top"><span class="badge b-cmd">PC→MCU 명령</span><span class="pkt-name">모션 정지 (STOP)</span></div>
+      <div class="pkt-desc">현재 재생 중인 모션 즉시 정지.</div>
+    </div>
+    <div class="pkt">
+      <div class="pkt-top"><span class="badge b-cmd">PC→MCU 명령</span><span class="pkt-name">모션 일시정지 / 재개 (PAUSE / RESUME)</span></div>
+      <div class="pkt-desc">재생 중 일시정지 및 재개 토글 or 명시적 구분.</div>
+    </div>
+  </div>
+
+  <div class="group">
+    <div class="group-title">재생 상태 — MCU가 PC에 주기적으로 또는 변화 시 전송</div>
+    <div class="pkt">
+      <div class="pkt-top"><span class="badge b-evt">MCU→PC 이벤트</span><span class="pkt-name">모션 재생 상태 (PLAY STATUS)</span></div>
+      <div class="pkt-desc">현재 재생 상태를 PC UI에 표시하기 위한 패킷. 상태 변화 시 또는 주기적으로 전송.</div>
+      <div class="pkt-detail">포함 데이터 → 현재 상태(재생중/정지/일시정지/초기화중), 현재 재생 파일 인덱스, 현재 반복 횟수/남은 횟수, 진행률(%)</div>
+    </div>
+    <div class="pkt">
+      <div class="pkt-top"><span class="badge b-evt">MCU→PC 이벤트</span><span class="pkt-name">모션 재생 완료 (PLAY DONE)</span></div>
+      <div class="pkt-desc">모션 1회 재생이 완료됐을 때 전송. 반복 재생 중이면 반복 카운트 포함.</div>
+      <div class="pkt-detail">포함 데이터 → 완료된 파일 인덱스, 완료된 반복 횟수, 남은 반복 횟수</div>
+    </div>
+  </div>
+
+  <div class="group">
+    <div class="group-title">초기화 상태 — 부팅 시 MCU 초기화 과정 모니터링</div>
+    <div class="pkt">
+      <div class="pkt-top"><span class="badge b-evt">MCU→PC 이벤트</span><span class="pkt-name">초기화 진행 상태 (INIT STATUS)</span></div>
+      <div class="pkt-desc">MT_ST의 초기화 단계(센서 찍기, 초기위치 이동 등) 진행 상황. Log/BOOT.TXT에 기록되는 부팅 패킷과 연계됨.</div>
+      <div class="pkt-detail">포함 데이터 → 초기화 단계(1~4단계), 현재 처리 중인 모터 ID.SUB_id, 성공/실패 여부</div>
+    </div>
+    <div class="pkt">
+      <div class="pkt-top"><span class="badge b-evt">MCU→PC 이벤트</span><span class="pkt-name">센서 감지 이벤트 (SENSOR EVENT)</span></div>
+      <div class="pkt-desc">Log/SENSOR.TXT에 기록되는 센서 감지 패킷. MT_AT의 absolute_data=0인 모터 대상.</div>
+      <div class="pkt-detail">포함 데이터 → 감지된 모터 ID.SUB_id, 감지 방향(CW/CCW), 감지 값</div>
+    </div>
+  </div>
+</div>
+
+<!-- 설정 읽기/쓰기 -->
+<div class="panel" id="panel-setting">
+  <div class="section-note">
+    SD카드 Setting 폴더의 파일들을 PC에서 원격으로 읽고 쓰는 패킷들입니다.<br>
+    파일별로 읽기/쓰기 패킷을 분리하거나, 파일 ID를 페이로드에 포함해 하나의 읽기/쓰기 패킷으로 통합하는 두 가지 방식이 가능합니다.
+  </div>
+
+  <div class="group">
+    <div class="group-title">단순값 설정 파일 (읽기 + 쓰기)</div>
+    <div class="pkt">
+      <div class="pkt-top"><span class="badge b-cmd">PC→MCU 명령</span><span class="pkt-name">Discovery ID 읽기/쓰기 (DI_ID)</span></div>
+      <div class="pkt-desc">녹화기 자체 ID 조회 및 변경. Setting/DI_ID.TXT (단일 정수값).</div>
+      <div class="pkt-detail">읽기 응답 데이터 → DI_ID 값 (정수)<br>쓰기 데이터 → 변경할 DI_ID 값</div>
+    </div>
+    <div class="pkt">
+      <div class="pkt-top"><span class="badge b-cmd">PC→MCU 명령</span><span class="pkt-name">반복 재생 ON/OFF 읽기/쓰기 (MT_RP)</span></div>
+      <div class="pkt-desc">초기화 후 자동 반복재생 여부. Setting/MT_RP.TXT (0 또는 1).</div>
+      <div class="pkt-detail">값 → 0: 반복 안 함, 1: 반복 실행</div>
+    </div>
+    <div class="pkt">
+      <div class="pkt-top"><span class="badge b-cmd">PC→MCU 명령</span><span class="pkt-name">반복 횟수 읽기/쓰기 (MT_CT)</span></div>
+      <div class="pkt-desc">모션 반복재생 빈도. Setting/MT_CT.TXT (정수).</div>
+    </div>
+    <div class="pkt">
+      <div class="pkt-top"><span class="badge b-cmd">PC→MCU 명령</span><span class="pkt-name">Master/Slave 모드 읽기/쓰기 (MT_MS)</span></div>
+      <div class="pkt-desc">멀티 녹화기 구성 시 역할 설정. Setting/MT_MS.TXT (MASTER / SLAVER 문자열).</div>
+    </div>
+    <div class="pkt">
+      <div class="pkt-top"><span class="badge b-cmd">PC→MCU 명령</span><span class="pkt-name">리셋 타이머 읽기/쓰기 (RE_TI)</span></div>
+      <div class="pkt-desc">자동 리셋까지의 시간(초). Setting/RE_TI.TXT. 0이면 리셋 안 함.</div>
+    </div>
+  </div>
+
+  <div class="group">
+    <div class="group-title">모터별 설정 파일 (ID.SUB_id 지정 필요)</div>
+    <div class="pkt">
+      <div class="pkt-top"><span class="badge b-cmd">PC→MCU 명령</span><span class="pkt-name">모터 설정 읽기/쓰기 (MT_ST)</span></div>
+      <div class="pkt-desc">모터 타입(RC/AC/BLDC)별 초기화 파라미터 전체. Setting/MT_ST.TXT.<br>타입별 구조가 다르므로 타입 구분 필요.</div>
+      <div class="pkt-detail">RC: 타입, ID.SUB_id<br>AC: 타입, ID.SUB_id, 센서방향, 각도, 초기위치, 감속기, 순위<br>BLDC: 타입, ID.SUB_id, 센서방향, 각도, 초기위치, 감속기, 한바퀴카운트, RPM, 순위</div>
+    </div>
+    <div class="pkt">
+      <div class="pkt-top"><span class="badge b-cmd">PC→MCU 명령</span><span class="pkt-name">소프트 리밋 읽기/쓰기 (MT_LI)</span></div>
+      <div class="pkt-desc">모터별 소프트웨어 동작 범위 제한. Setting/MT_LI.TXT.<br>구조: ID.SUB_id, MIN(0~4095), MAX(0~4095)</div>
+    </div>
+    <div class="pkt">
+      <div class="pkt-top"><span class="badge b-cmd">PC→MCU 명령</span><span class="pkt-name">앱솔루트 모드 읽기/쓰기 (MT_AT)</span></div>
+      <div class="pkt-desc">앱솔루트 동작 모터 목록과 absolute_data. Setting/MT_AT.TXT.<br>구조: ID.SUB_id, absolute_data (0이면 센서 찍기 수행)</div>
+    </div>
+    <div class="pkt">
+      <div class="pkt-top"><span class="badge b-cmd">PC→MCU 명령</span><span class="pkt-name">모터 링크 읽기/쓰기 (MT_LK)</span></div>
+      <div class="pkt-desc">두 모터축을 소프트웨어적으로 결합. Setting/MT_LK.TXT.<br>구조: ID.SUB_id1, offset1, ID.SUB_id2, offset2</div>
+    </div>
+  </div>
+
+  <div class="group">
+    <div class="group-title">Midi 설정 파일</div>
+    <div class="pkt">
+      <div class="pkt-top"><span class="badge b-cmd">PC→MCU 명령</span><span class="pkt-name">모터 Midi 설정 읽기/쓰기 (Midi/motor)</span></div>
+      <div class="pkt-desc">모터 ID별 별칭(NickName, 8자 이내), 슬라이더 범위(Range), 최소/최대값(LowData/HighData).<br>파일명 구조: {보드ID}-{모터ID}.ini</div>
+      <div class="pkt-detail">포함 데이터 → 보드ID, 모터ID, NickName(8자), Range(0~4095), LowData(0~4095), HighData(0~4095)</div>
+    </div>
+    <div class="pkt">
+      <div class="pkt-top"><span class="badge b-cmd">PC→MCU 명령</span><span class="pkt-name">Midi 페이지 읽기/쓰기 (Midi/page)</span></div>
+      <div class="pkt-desc">페이지별 CAN ID 목록(최대 8개/페이지), LastPage 정보. Midi/page/data.ini.</div>
+      <div class="pkt-detail">포함 데이터 → 페이지 수(cnt), 각 페이지의 ID 배열, LastPage 매핑(CAN ID → 최근 페이지)</div>
+    </div>
+  </div>
+</div>
+
+<!-- 시스템 -->
+<div class="panel" id="panel-system">
+  <div class="group">
+    <div class="group-title">연결 및 장치 확인</div>
+    <div class="pkt">
+      <div class="pkt-top"><span class="badge b-cmd">PC→MCU 명령</span><span class="pkt-name">장치 발견 / Ping (DISCOVERY)</span></div>
+      <div class="pkt-desc">PC가 Zigbee 네트워크에서 MCU를 찾기 위한 브로드캐스트 또는 단일 요청. DI_ID 기반으로 장치를 식별.</div>
+      <div class="pkt-detail">응답 데이터 → DI_ID, 펌웨어 버전, MCU 현재 상태, Master/Slave 역할</div>
+    </div>
+    <div class="pkt">
+      <div class="pkt-top"><span class="badge b-rsp">MCU→PC 응답</span><span class="pkt-name">장치 정보 응답 (DEVICE INFO)</span></div>
+      <div class="pkt-desc">DISCOVERY 요청에 대한 응답. 처음 연결 시 PC가 MCU 전체 구성을 파악하는 데 사용.</div>
+      <div class="pkt-detail">포함 데이터 → DI_ID, FW 버전, 현재 상태, MS 역할, 연결된 모터 수</div>
+    </div>
+  </div>
+
+  <div class="group">
+    <div class="group-title">MCU 제어</div>
+    <div class="pkt">
+      <div class="pkt-top"><span class="badge b-cmd">PC→MCU 명령</span><span class="pkt-name">MCU 리셋 명령 (RESET)</span></div>
+      <div class="pkt-desc">원격으로 MCU를 소프트 리셋. RE_TI 설정과 별개로 즉시 리셋 또는 예약 리셋 가능.</div>
+    </div>
+    <div class="pkt">
+      <div class="pkt-top"><span class="badge b-cmd">PC→MCU 명령</span><span class="pkt-name">초기화 재실행 명령 (RE-INIT)</span></div>
+      <div class="pkt-desc">MT_ST의 초기화 시퀀스(센서 찍기 → 초기위치 이동)를 리셋 없이 재실행 요청.</div>
+    </div>
+  </div>
+
+  <div class="group">
+    <div class="group-title">오류 및 로그</div>
+    <div class="pkt">
+      <div class="pkt-top"><span class="badge b-evt">MCU→PC 이벤트</span><span class="pkt-name">에러 발생 알림 (ERROR EVENT)</span></div>
+      <div class="pkt-desc">Log 폴더에 기록되는 에러 상태를 실시간으로 PC에 전달. 모터 통신 오류, 센서 실패, SD카드 오류 등.</div>
+      <div class="pkt-detail">포함 데이터 → 에러 코드, 에러 발생 모터 ID.SUB_id (해당 시), 에러 메시지</div>
+    </div>
+    <div class="pkt">
+      <div class="pkt-top"><span class="badge b-cmd">PC→MCU 명령</span><span class="pkt-name">로그 읽기 요청 (LOG READ)</span></div>
+      <div class="pkt-desc">Log/BOOT.TXT, Log/SENSOR.TXT 내용을 PC로 전송 요청.</div>
+      <div class="pkt-detail">요청 데이터 → 로그 종류(BOOT / SENSOR), 읽을 라인 수 또는 전체</div>
+    </div>
+  </div>
+</div>
+
+<!-- 전체 요약 -->
+<div class="panel" id="panel-summary">
+  <table>
+    <tr><th>분류</th><th>패킷명</th><th>방향</th><th>연관 SD 파일</th></tr>
+    <tr><td rowspan="5" style="color:var(--color-text-info);font-weight:500">모션 제어</td><td>모션 재생 (PLAY)</td><td><span class="badge b-cmd">PC→MCU</span></td><td><span class="mono">MT_RP, MT_CT</span></td></tr>
+    <tr><td>모션 정지 (STOP)</td><td><span class="badge b-cmd">PC→MCU</span></td><td>—</td></tr>
+    <tr><td>일시정지/재개 (PAUSE)</td><td><span class="badge b-cmd">PC→MCU</span></td><td>—</td></tr>
+    <tr><td>재생 상태 (PLAY STATUS)</td><td><span class="badge b-evt">MCU→PC</span></td><td>—</td></tr>
+    <tr><td>재생 완료 (PLAY DONE)</td><td><span class="badge b-evt">MCU→PC</span></td><td>—</td></tr>
+    <tr><td rowspan="2" style="color:var(--color-text-warning);font-weight:500">초기화</td><td>초기화 상태 (INIT STATUS)</td><td><span class="badge b-evt">MCU→PC</span></td><td><span class="mono">MT_ST, MT_AT</span></td></tr>
+    <tr><td>센서 감지 이벤트</td><td><span class="badge b-evt">MCU→PC</span></td><td><span class="mono">Log/SENSOR.TXT</span></td></tr>
+    <tr><td rowspan="7" style="color:var(--color-text-success);font-weight:500">설정 R/W</td><td>DI_ID 읽기/쓰기</td><td><span class="badge b-rw">양방향</span></td><td><span class="mono">Setting/DI_ID.TXT</span></td></tr>
+    <tr><td>반복재생 설정 (MT_RP)</td><td><span class="badge b-rw">양방향</span></td><td><span class="mono">Setting/MT_RP.TXT</span></td></tr>
+    <tr><td>반복횟수 설정 (MT_CT)</td><td><span class="badge b-rw">양방향</span></td><td><span class="mono">Setting/MT_CT.TXT</span></td></tr>
+    <tr><td>모터 초기화 설정 (MT_ST)</td><td><span class="badge b-rw">양방향</span></td><td><span class="mono">Setting/MT_ST.TXT</span></td></tr>
+    <tr><td>소프트 리밋 (MT_LI)</td><td><span class="badge b-rw">양방향</span></td><td><span class="mono">Setting/MT_LI.TXT</span></td></tr>
+    <tr><td>앱솔루트 설정 (MT_AT)</td><td><span class="badge b-rw">양방향</span></td><td><span class="mono">Setting/MT_AT.TXT</span></td></tr>
+    <tr><td>모터 링크 (MT_LK)</td><td><span class="badge b-rw">양방향</span></td><td><span class="mono">Setting/MT_LK.TXT</span></td></tr>
+    <tr><td rowspan="2" style="color:var(--color-text-secondary);font-weight:500">Midi 설정</td><td>모터 Midi 파라미터</td><td><span class="badge b-rw">양방향</span></td><td><span class="mono">Midi/motor/{id}.ini</span></td></tr>
+    <tr><td>Midi 페이지 설정</td><td><span class="badge b-rw">양방향</span></td><td><span class="mono">Midi/page/data.ini</span></td></tr>
+    <tr><td rowspan="5" style="color:var(--color-text-tertiary);font-weight:500">시스템</td><td>장치 발견 / Ping</td><td><span class="badge b-cmd">PC→MCU</span></td><td><span class="mono">Setting/DI_ID.TXT</span></td></tr>
+    <tr><td>장치 정보 응답</td><td><span class="badge b-rsp">MCU→PC</span></td><td>—</td></tr>
+    <tr><td>MCU 리셋 명령</td><td><span class="badge b-cmd">PC→MCU</span></td><td><span class="mono">Setting/RE_TI.TXT</span></td></tr>
+    <tr><td>에러 알림</td><td><span class="badge b-evt">MCU→PC</span></td><td><span class="mono">Log/</span></td></tr>
+    <tr><td>로그 읽기</td><td><span class="badge b-cmd">PC→MCU</span></td><td><span class="mono">Log/BOOT, SENSOR</span></td></tr>
+  </table>
+</div>
+</div>
+
+<script>
+function switchTab(id){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('panel-'+id).classList.add('active');
+}
+</script>
