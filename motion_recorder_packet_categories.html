@@ -41,6 +41,10 @@ tr:last-child td{border-bottom:none}
 .function-card{border:0.5px solid var(--color-border-tertiary);border-radius:10px;padding:1rem;background:var(--color-background-primary);margin-bottom:.75rem}
 .function-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:.75rem}
 .function-title{font-size:15px;font-weight:600;color:var(--color-text-primary)}
+.command-app-links{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:-.2rem 0 .75rem}
+.command-app-links-label{font-size:12px;color:var(--color-text-tertiary)}
+.command-app-link{font:inherit;font-size:12px;color:var(--color-text-info);background:none;border:none;padding:0;cursor:pointer;text-decoration:underline;text-decoration-color:var(--color-border-tertiary);text-underline-offset:2px}
+.command-app-link:hover{color:var(--color-text-primary)}
 .function-sub{font-size:12px;color:var(--color-text-secondary);line-height:1.6;margin-bottom:.875rem}
 .function-grid{display:grid;grid-template-columns:1fr;gap:.85rem}
 .function-block{background:var(--color-background-secondary);border-radius:8px;padding:.75rem .875rem}
@@ -316,6 +320,13 @@ tr:last-child td{border-bottom:none}
         <span class="badge b-rw">cmd = 0x04</span>
         <span class="function-title">CMD_MOTION_CTRL</span>
       </div>
+      <div class="command-app-links">
+        <span class="command-app-links-label">사용 app 함수:</span>
+        <button type="button" class="command-app-link" onclick="openFunctionDoc('functions-app-motion-play')">App_MotionPlay</button>
+        <button type="button" class="command-app-link" onclick="openFunctionDoc('functions-app-motion-stop')">App_MotionStop</button>
+        <button type="button" class="command-app-link" onclick="openFunctionDoc('functions-app-motion-pause')">App_MotionPause</button>
+        <button type="button" class="command-app-link" onclick="openFunctionDoc('functions-app-motion-seek')">App_MotionSeek</button>
+      </div>
       <div class="function-sub">
         <span class="mono">CMD_MOTION_CTRL</span>는 모션 관련 제어 명령을 묶어서 처리하는 상위 cmd입니다.
         실제 동작 종류는 payload 첫 바이트의 <span class="mono">MotionAction</span> 값으로 구분되며,
@@ -404,6 +415,10 @@ tr:last-child td{border-bottom:none}
         <span class="badge b-rw">cmd = 0x01</span>
         <span class="function-title">CMD_PING</span>
       </div>
+      <div class="command-app-links">
+        <span class="command-app-links-label">사용 app 함수:</span>
+        <button type="button" class="command-app-link" onclick="openFunctionDoc('functions-app-ping')">App_Ping</button>
+      </div>
       <div class="function-sub">
         <span class="mono">CMD_PING</span>은 장치가 살아 있고 통신 가능 상태인지 확인하는 기본 명령입니다.
         현재 binary 구현 기준으로 성공 시 <span class="mono">CMD_PONG</span>를 payload 없이 돌려주며,
@@ -476,6 +491,10 @@ FF = tar_id (broadcast)
         <span class="badge b-rw">cmd = 0x21</span>
         <span class="function-title">CMD_GET_FILE</span>
       </div>
+      <div class="command-app-links">
+        <span class="command-app-links-label">사용 app 함수:</span>
+        <button type="button" class="command-app-link" onclick="openFunctionDoc('functions-app-get-file')">App_GetFile</button>
+      </div>
       <div class="function-sub">
         <span class="mono">CMD_GET_FILE</span>은 path 문자열 하나로 실제 대상 파일을 구분하는 범용 읽기 명령입니다.
         따라서 <strong>DI_ID / MT_RP / MT_CT / MT_ST / MT_LI / MT_AT / MT_LK / 모터 Midi 파라미터 / Midi 페이지 설정 / 로그 읽기</strong>는
@@ -545,6 +564,10 @@ Setting/DI_ID.TXT = path
         <span class="badge b-rw">cmd = 0x22</span>
         <span class="function-title">CMD_SAVE_FILE</span>
       </div>
+      <div class="command-app-links">
+        <span class="command-app-links-label">사용 app 함수:</span>
+        <button type="button" class="command-app-link" onclick="openFunctionDoc('functions-app-save-file')">App_SaveFile</button>
+      </div>
       <div class="function-sub">
         <span class="mono">CMD_SAVE_FILE</span>은 path와 content를 함께 보내 실제 파일 내용을 저장하는 범용 쓰기 명령입니다.
         설정 파일과 Midi 파일 계열은 현재 코드 기준으로 모두 이 cmd를 통해 갱신합니다.
@@ -611,6 +634,10 @@ Setting/MT_RP.TXT = path</code></pre>
         <span class="badge b-cmd">PC→MCU 명령</span>
         <span class="badge b-rw">cmd = 0x23</span>
         <span class="function-title">CMD_VERIFY_FILE</span>
+      </div>
+      <div class="command-app-links">
+        <span class="command-app-links-label">사용 app 함수:</span>
+        <button type="button" class="command-app-link" onclick="openFunctionDoc('functions-app-verify-file')">App_VerifyFile</button>
       </div>
       <div class="function-sub">
         <span class="mono">CMD_VERIFY_FILE</span>은 expected content를 같이 보내 저장된 파일 내용과 일치 여부를 확인하는 검증 명령입니다.
