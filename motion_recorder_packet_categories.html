@@ -252,7 +252,8 @@ tr:last-child td{border-bottom:none}
 <div class="panel" id="panel-commands">
   <div class="section-note">
     이 탭은 실제 wire command를 빠르게 훑어보는 명령 목록과 선택된 명령 상세를 함께 보여줍니다.<br>
-    현재는 <strong>CMD_MOTION_CTRL</strong>를 먼저 정리했고, 이후 다른 cmd도 같은 방식으로 순차 추가하면 됩니다.
+    현재는 <strong>CMD_MOTION_CTRL / CMD_PING / CMD_GET_FILE / CMD_SAVE_FILE / CMD_VERIFY_FILE</strong>를 먼저 정리했고,
+    이후 다른 cmd도 같은 방식으로 순차 추가하면 됩니다.
   </div>
 
   <div class="group">
@@ -264,6 +265,43 @@ tr:last-child td{border-bottom:none}
           <div class="command-linkdesc">
             <span class="mono">cmd = 0x04</span> 이며 <span class="mono">payload[0]</span> 값으로
             PLAY / STOP / PAUSE / SEEK 를 구분하는 모션 제어 계열 명령입니다.
+          </div>
+        </button>
+      </div>
+
+      <div class="command-linkcard">
+        <button type="button" class="command-linkbtn" onclick="openCommandDoc('commands-ping-detail')">
+          <div class="command-linktitle">CMD_PING</div>
+          <div class="command-linkdesc">
+            <span class="mono">cmd = 0x01</span> 이며 payload 없이 장치 생존 여부를 확인합니다.
+            성공 시 <span class="mono">CMD_PONG(0x02)</span> 응답을 돌려줍니다.
+          </div>
+        </button>
+      </div>
+
+      <div class="command-linkcard">
+        <button type="button" class="command-linkbtn" onclick="openCommandDoc('commands-get-file-detail')">
+          <div class="command-linktitle">CMD_GET_FILE</div>
+          <div class="command-linkdesc">
+            <span class="mono">cmd = 0x21</span> 이며 path 문자열로 설정/Midi/로그 파일 내용을 읽습니다.
+          </div>
+        </button>
+      </div>
+
+      <div class="command-linkcard">
+        <button type="button" class="command-linkbtn" onclick="openCommandDoc('commands-save-file-detail')">
+          <div class="command-linktitle">CMD_SAVE_FILE</div>
+          <div class="command-linkdesc">
+            <span class="mono">cmd = 0x22</span> 이며 path와 content를 함께 보내 설정/Midi 파일을 저장합니다.
+          </div>
+        </button>
+      </div>
+
+      <div class="command-linkcard">
+        <button type="button" class="command-linkbtn" onclick="openCommandDoc('commands-verify-file-detail')">
+          <div class="command-linktitle">CMD_VERIFY_FILE</div>
+          <div class="command-linkdesc">
+            <span class="mono">cmd = 0x23</span> 이며 저장된 파일 내용이 기대값과 일치하는지 검증합니다.
           </div>
         </button>
       </div>
@@ -332,7 +370,7 @@ tr:last-child td{border-bottom:none}
             <li>action 값은 <span class="mono">0x01</span> 입니다.</li>
             <li>현재 재생 중인 모션을 즉시 중단하는 용도로 사용합니다.</li>
             <li>이 값은 "현재 재생 즉시 정지"로 해석됩니다.</li>
-            <li>함수 사용법은 이후 <strong>전체 함수</strong> 탭에 같은 형식으로 추가합니다.</li>
+            <li>함수 사용법은 <strong>전체 함수 &gt; App_MotionStop</strong>에서 봅니다.</li>
           </ul>
         </div>
 
@@ -342,7 +380,7 @@ tr:last-child td{border-bottom:none}
             <li>action 값은 <span class="mono">0x02</span> 입니다.</li>
             <li>현재 재생을 잠시 멈추고, 이후 재개 가능한 상태를 유지하는 용도입니다.</li>
             <li>이 값은 "현재 재생 일시정지"로 해석됩니다.</li>
-            <li>함수 사용법은 이후 <strong>전체 함수</strong> 탭에 같은 형식으로 추가합니다.</li>
+            <li>함수 사용법은 <strong>전체 함수 &gt; App_MotionPause</strong>에서 봅니다.</li>
           </ul>
         </div>
 
@@ -359,6 +397,281 @@ tr:last-child td{border-bottom:none}
         </div>
       </div>
     </section>
+
+    <section class="function-card" id="commands-ping-detail">
+      <div class="function-head">
+        <span class="badge b-cmd">PC→MCU 명령</span>
+        <span class="badge b-rw">cmd = 0x01</span>
+        <span class="function-title">CMD_PING</span>
+      </div>
+      <div class="function-sub">
+        <span class="mono">CMD_PING</span>은 장치가 살아 있고 통신 가능 상태인지 확인하는 기본 명령입니다.
+        현재 binary 구현 기준으로 성공 시 <span class="mono">CMD_PONG</span>를 payload 없이 돌려주며,
+        문서 상단의 장치 정보 응답 같은 추가 payload는 아직 이 cmd에 포함되지 않습니다.
+      </div>
+
+      <div class="function-grid">
+        <div class="function-block">
+          <h4>명령 개요</h4>
+          <ul>
+            <li>요청 헤더는 <span class="mono">src_id | tar_id | cmd | payload_len(LE)</span> 순서입니다.</li>
+            <li><span class="mono">cmd = 0x01</span> 이면 <span class="mono">CMD_PING</span> 로 해석됩니다.</li>
+            <li>현재 구현에서 요청 payload는 없습니다.</li>
+            <li>브로드캐스트(<span class="mono">tar_id = 0xFF</span>) 또는 단일 장치 ping에 모두 사용할 수 있습니다.</li>
+          </ul>
+        </div>
+
+        <div class="function-block">
+          <h4>현재 구현 기준 응답</h4>
+          <ul>
+            <li>성공 시 응답 cmd는 <span class="mono">CMD_PONG(0x02)</span> 입니다.</li>
+            <li>성공 응답은 <span class="mono">STATUS_OK</span>, <span class="mono">payload_len = 0</span> 입니다.</li>
+            <li>즉 현재 binary 구현에서는 DI_ID, FW 버전, 상태 정보를 payload로 싣지 않습니다.</li>
+            <li>실패 시에는 에러 응답으로 처리됩니다.</li>
+          </ul>
+        </div>
+
+        <div class="function-block">
+          <h4>대표 사용 항목</h4>
+          <ul>
+            <li><strong>장치 발견 / Ping</strong> 항목이 이 cmd에 직접 대응합니다.</li>
+            <li>PC는 네트워크에서 응답 가능한 장치를 찾기 위해 ping을 보냅니다.</li>
+            <li>현재 프로젝트에서는 장치 정보 조회보다 "응답 여부 확인" 성격이 더 강합니다.</li>
+          </ul>
+        </div>
+
+        <div class="function-block">
+          <h4>공통 처리 흐름</h4>
+          <ul>
+            <li>통신 레이어가 <span class="mono">CMD_PING</span> 을 확인하면 <span class="mono">App_Ping()</span> 을 호출합니다.</li>
+            <li><span class="mono">App_Ping()</span> 이 true를 반환하면 <span class="mono">CMD_PONG</span> 성공 응답을 보냅니다.</li>
+            <li>false를 반환하면 실패로 간주하고 에러 응답을 보냅니다.</li>
+          </ul>
+        </div>
+
+        <div class="function-block function-block-wide">
+          <h4>요청 / 응답 바이트 예시</h4>
+          <pre><code>/* PC -> MCU : broadcast ping */
+00 FF 01 00 00
+
+00 = src_id (PC)
+FF = tar_id (broadcast)
+01 = CMD_PING
+00 00 = payload_len (LE)</code></pre>
+          <pre><code>/* MCU -> PC : pong success */
+0A 00 02 00 00 00
+
+0A = src_id (example device id)
+00 = tar_id (PC)
+02 = CMD_PONG
+00 = STATUS_OK
+00 00 = payload_len (LE)</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <section class="function-card" id="commands-get-file-detail">
+      <div class="function-head">
+        <span class="badge b-cmd">PC→MCU 명령</span>
+        <span class="badge b-rw">cmd = 0x21</span>
+        <span class="function-title">CMD_GET_FILE</span>
+      </div>
+      <div class="function-sub">
+        <span class="mono">CMD_GET_FILE</span>은 path 문자열 하나로 실제 대상 파일을 구분하는 범용 읽기 명령입니다.
+        따라서 <strong>DI_ID / MT_RP / MT_CT / MT_ST / MT_LI / MT_AT / MT_LK / 모터 Midi 파라미터 / Midi 페이지 설정 / 로그 읽기</strong>는
+        전용 cmd가 아니라 모두 이 상위 cmd로 읽습니다.
+      </div>
+
+      <div class="function-grid">
+        <div class="function-block">
+          <h4>명령 개요</h4>
+          <ul>
+            <li>요청 payload는 <span class="mono">path_len(2 LE) + path(path_len)</span> 입니다.</li>
+            <li>응답 payload는 <span class="mono">path_len + path + content_len + content</span> 입니다.</li>
+            <li>동일한 cmd 안에서 path 값만 바꿔 여러 설정 파일과 로그 파일을 읽습니다.</li>
+          </ul>
+        </div>
+
+        <div class="function-block">
+          <h4>대표 읽기 대상</h4>
+          <ul>
+            <li><span class="mono">Setting/DI_ID.TXT</span></li>
+            <li><span class="mono">Setting/MT_RP.TXT</span>, <span class="mono">Setting/MT_CT.TXT</span>, <span class="mono">Setting/MT_ST.TXT</span></li>
+            <li><span class="mono">Setting/MT_LI.TXT</span>, <span class="mono">Setting/MT_AT.TXT</span>, <span class="mono">Setting/MT_LK.TXT</span></li>
+            <li><span class="mono">Midi/motor/{id}.ini</span>, <span class="mono">Midi/page/data.ini</span></li>
+            <li><span class="mono">Log/BOOT.TXT</span>, <span class="mono">Log/SENSOR.TXT</span></li>
+          </ul>
+        </div>
+
+        <div class="function-block">
+          <h4>공통 처리 흐름</h4>
+          <ul>
+            <li>통신 레이어가 path 길이와 payload 길이 일치를 먼저 검사합니다.</li>
+            <li>path를 문자열로 복원한 뒤 <span class="mono">App_GetFile(path, out_content, max_len)</span> 을 호출합니다.</li>
+            <li>성공 시 path와 content를 함께 응답에 담고, 실패 시 <span class="mono">ERR_FILE_NOT_FOUND</span> 를 보냅니다.</li>
+          </ul>
+        </div>
+
+        <div class="function-block">
+          <h4>함수 사용 위치</h4>
+          <ul>
+            <li>구현 책임은 <strong>전체 함수 &gt; App_GetFile</strong>에 모여 있습니다.</li>
+            <li>읽기 전용 cmd이고, 실제 저장은 <span class="mono">CMD_SAVE_FILE</span> 에서 처리합니다.</li>
+            <li>저장 후 비교 검증은 <span class="mono">CMD_VERIFY_FILE</span> 에서 처리합니다.</li>
+          </ul>
+        </div>
+
+        <div class="function-block function-block-wide">
+          <h4>요청 / 응답 payload 예시</h4>
+          <pre><code>/* read request for Setting/DI_ID.TXT */
+11 00 | "Setting/DI_ID.TXT"
+
+11 00 = path_len (17, LE)
+Setting/DI_ID.TXT = path</code></pre>
+          <pre><code>/* success response payload example */
+11 00 | "Setting/DI_ID.TXT" | 02 00 | "10"
+
+11 00 = path_len (LE)
+Setting/DI_ID.TXT = path
+02 00 = content_len (LE)
+10 = content</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <section class="function-card" id="commands-save-file-detail">
+      <div class="function-head">
+        <span class="badge b-cmd">PC→MCU 명령</span>
+        <span class="badge b-rw">cmd = 0x22</span>
+        <span class="function-title">CMD_SAVE_FILE</span>
+      </div>
+      <div class="function-sub">
+        <span class="mono">CMD_SAVE_FILE</span>은 path와 content를 함께 보내 실제 파일 내용을 저장하는 범용 쓰기 명령입니다.
+        설정 파일과 Midi 파일 계열은 현재 코드 기준으로 모두 이 cmd를 통해 갱신합니다.
+      </div>
+
+      <div class="function-grid">
+        <div class="function-block">
+          <h4>명령 개요</h4>
+          <ul>
+            <li>요청 payload는 <span class="mono">path_len(2 LE) + path + content_len(2 LE) + content</span> 입니다.</li>
+            <li>성공 응답 payload는 <span class="mono">path_len + path</span> 만 돌려줍니다.</li>
+            <li>즉 응답은 "어떤 파일 저장을 수락했는가" 확인용입니다.</li>
+          </ul>
+        </div>
+
+        <div class="function-block">
+          <h4>대표 쓰기 대상</h4>
+          <ul>
+            <li><span class="mono">Setting/DI_ID.TXT</span></li>
+            <li><span class="mono">Setting/MT_RP.TXT</span>, <span class="mono">Setting/MT_CT.TXT</span>, <span class="mono">Setting/MT_ST.TXT</span></li>
+            <li><span class="mono">Setting/MT_LI.TXT</span>, <span class="mono">Setting/MT_AT.TXT</span>, <span class="mono">Setting/MT_LK.TXT</span></li>
+            <li><span class="mono">Midi/motor/{id}.ini</span>, <span class="mono">Midi/page/data.ini</span></li>
+            <li>로그 파일 읽기는 <span class="mono">CMD_GET_FILE</span> 범위이고, 이번 문서에서는 로그 저장까지 다루지 않습니다.</li>
+          </ul>
+        </div>
+
+        <div class="function-block">
+          <h4>공통 처리 흐름</h4>
+          <ul>
+            <li>통신 레이어가 path와 content 길이를 검증합니다.</li>
+            <li>그 다음 <span class="mono">App_SaveFile(path, content)</span> 을 호출합니다.</li>
+            <li>성공 시 path만 담은 성공 응답을 보내고, 실패 시 에러 응답을 보냅니다.</li>
+          </ul>
+        </div>
+
+        <div class="function-block">
+          <h4>함수 사용 위치</h4>
+          <ul>
+            <li>구현 책임은 <strong>전체 함수 &gt; App_SaveFile</strong>에 모여 있습니다.</li>
+            <li>저장 후 실제 내용이 맞는지 확인하려면 <span class="mono">CMD_VERIFY_FILE</span> 을 이어서 사용합니다.</li>
+          </ul>
+        </div>
+
+        <div class="function-block function-block-wide">
+          <h4>요청 / 응답 payload 예시</h4>
+          <pre><code>/* write request for Setting/MT_RP.TXT = "1" */
+11 00 | "Setting/MT_RP.TXT" | 01 00 | "1"
+
+11 00 = path_len (17, LE)
+Setting/MT_RP.TXT = path
+01 00 = content_len (1, LE)
+1 = content</code></pre>
+          <pre><code>/* success response payload */
+11 00 | "Setting/MT_RP.TXT"
+
+11 00 = path_len (LE)
+Setting/MT_RP.TXT = path</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <section class="function-card" id="commands-verify-file-detail">
+      <div class="function-head">
+        <span class="badge b-cmd">PC→MCU 명령</span>
+        <span class="badge b-rw">cmd = 0x23</span>
+        <span class="function-title">CMD_VERIFY_FILE</span>
+      </div>
+      <div class="function-sub">
+        <span class="mono">CMD_VERIFY_FILE</span>은 expected content를 같이 보내 저장된 파일 내용과 일치 여부를 확인하는 검증 명령입니다.
+        설정 파일과 Midi 파일을 저장한 뒤 PC가 후속 확인용으로 사용할 수 있습니다.
+      </div>
+
+      <div class="function-grid">
+        <div class="function-block">
+          <h4>명령 개요</h4>
+          <ul>
+            <li>요청 payload 구조는 <span class="mono">CMD_SAVE_FILE</span> 과 동일합니다.</li>
+            <li>성공 응답 payload는 <span class="mono">path_len + path + match(1)</span> 입니다.</li>
+            <li><span class="mono">match = 0x01</span> 이면 일치, <span class="mono">0x00</span> 이면 불일치입니다.</li>
+          </ul>
+        </div>
+
+        <div class="function-block">
+          <h4>대표 검증 대상</h4>
+          <ul>
+            <li><span class="mono">Setting/DI_ID.TXT</span></li>
+            <li><span class="mono">Setting/MT_RP.TXT</span>, <span class="mono">Setting/MT_CT.TXT</span>, <span class="mono">Setting/MT_ST.TXT</span></li>
+            <li><span class="mono">Setting/MT_LI.TXT</span>, <span class="mono">Setting/MT_AT.TXT</span>, <span class="mono">Setting/MT_LK.TXT</span></li>
+            <li><span class="mono">Midi/motor/{id}.ini</span>, <span class="mono">Midi/page/data.ini</span></li>
+          </ul>
+        </div>
+
+        <div class="function-block">
+          <h4>공통 처리 흐름</h4>
+          <ul>
+            <li>통신 레이어가 path와 expected content를 복원합니다.</li>
+            <li><span class="mono">App_VerifyFile(path, content, &amp;match)</span> 을 호출합니다.</li>
+            <li>파일을 읽을 수 없으면 실패, 읽을 수 있으면 일치 여부를 1바이트 match 값으로 응답합니다.</li>
+          </ul>
+        </div>
+
+        <div class="function-block">
+          <h4>함수 사용 위치</h4>
+          <ul>
+            <li>구현 책임은 <strong>전체 함수 &gt; App_VerifyFile</strong>에 모여 있습니다.</li>
+            <li>저장 자체는 <span class="mono">CMD_SAVE_FILE</span>, 읽기는 <span class="mono">CMD_GET_FILE</span> 과 역할이 나뉩니다.</li>
+          </ul>
+        </div>
+
+        <div class="function-block function-block-wide">
+          <h4>요청 / 응답 payload 예시</h4>
+          <pre><code>/* verify request for Setting/MT_RP.TXT = "1" */
+11 00 | "Setting/MT_RP.TXT" | 01 00 | "1"
+
+11 00 = path_len (LE)
+Setting/MT_RP.TXT = path
+01 00 = content_len (LE)
+1 = expected content</code></pre>
+          <pre><code>/* success response payload */
+11 00 | "Setting/MT_RP.TXT" | 01
+
+11 00 = path_len (LE)
+Setting/MT_RP.TXT = path
+01 = match (1 = same, 0 = different)</code></pre>
+        </div>
+      </div>
+    </section>
   </div>
 </div>
 
@@ -366,7 +679,8 @@ tr:last-child td{border-bottom:none}
 <div class="panel" id="panel-functions">
   <div class="section-note">
     이 탭은 <span class="mono">App_*</span> 함수가 언제 호출되고, app 코드 작성자가 무엇을 구현해야 하는지 함수 관점으로 정리합니다.<br>
-    현재는 <strong>App_MotionPlay / Stop / Pause / Seek</strong>를 먼저 정리했고, 이후 다른 App 함수도 같은 형식으로 순차 추가하면 됩니다.
+    현재는 <strong>App_MotionPlay / Stop / Pause / Seek / Ping / GetFile / SaveFile / VerifyFile</strong>를 먼저 정리했고,
+    이후 다른 App 함수도 같은 형식으로 순차 추가하면 됩니다.
   </div>
 
   <div class="group">
@@ -397,6 +711,34 @@ tr:last-child td{border-bottom:none}
         <button type="button" class="command-linkbtn" onclick="openFunctionDoc('functions-app-motion-seek')">
           <div class="command-linktitle">App_MotionSeek</div>
           <div class="command-linkdesc"><span class="mono">payload[0] = 0x03</span> 일 때 호출. <span class="mono">time_ms</span> 위치로 이동합니다.</div>
+        </button>
+      </div>
+
+      <div class="command-linkcard">
+        <button type="button" class="command-linkbtn" onclick="openFunctionDoc('functions-app-ping')">
+          <div class="command-linktitle">App_Ping</div>
+          <div class="command-linkdesc"><span class="mono">CMD_PING</span> 수신 시 호출. 장치가 응답 가능한 상태인지 확인합니다.</div>
+        </button>
+      </div>
+
+      <div class="command-linkcard">
+        <button type="button" class="command-linkbtn" onclick="openFunctionDoc('functions-app-get-file')">
+          <div class="command-linktitle">App_GetFile</div>
+          <div class="command-linkdesc">설정 / Midi / 로그 파일 읽기 공통 진입점입니다.</div>
+        </button>
+      </div>
+
+      <div class="command-linkcard">
+        <button type="button" class="command-linkbtn" onclick="openFunctionDoc('functions-app-save-file')">
+          <div class="command-linktitle">App_SaveFile</div>
+          <div class="command-linkdesc">설정 / Midi 파일 저장 공통 진입점입니다.</div>
+        </button>
+      </div>
+
+      <div class="command-linkcard">
+        <button type="button" class="command-linkbtn" onclick="openFunctionDoc('functions-app-verify-file')">
+          <div class="command-linktitle">App_VerifyFile</div>
+          <div class="command-linkdesc">저장된 파일 내용과 기대값 일치 여부를 검증합니다.</div>
         </button>
       </div>
     </div>
@@ -683,6 +1025,285 @@ bool App_MotionPlay(uint8_t device_id)
         </div>
       </div>
     </section>
+
+    <section class="function-card" id="functions-app-ping">
+      <div class="function-head">
+        <span class="badge b-cmd">App 함수</span>
+        <button type="button" class="badge badge-link b-rw" onclick="openCommandDoc('commands-ping-detail')">called by CMD_PING</button>
+        <span class="function-title">App_Ping(void)</span>
+      </div>
+      <div class="function-sub">
+        <span class="mono">CMD_PING</span> 이 들어오면 통신 레이어가 <span class="mono">App_Ping()</span> 을 호출합니다.
+        이 함수는 장치가 현재 응답 가능한 상태인지 판단하는 가장 얇은 app 진입점입니다.
+      </div>
+
+      <div class="function-grid">
+        <div class="function-block">
+          <h4>언제 호출되는가</h4>
+          <ul>
+            <li>PC가 <span class="mono">CMD_PING</span> 을 보내면 호출됩니다.</li>
+            <li>현재 구현에서는 입력 payload가 없으므로 함수 인자도 없습니다.</li>
+            <li>대표 대응 항목은 <strong>장치 발견 / Ping</strong> 입니다.</li>
+          </ul>
+        </div>
+
+        <div class="function-block">
+          <h4>app 코드가 해야 할 일</h4>
+          <ul>
+            <li>장치가 통신 응답 가능한 상태인지 간단히 판단합니다.</li>
+            <li>필요하면 초기화 완료 여부나 통신 서브시스템 상태를 확인합니다.</li>
+            <li>응답 가능하면 true, 불가하면 false를 반환합니다.</li>
+          </ul>
+        </div>
+
+        <div class="function-block">
+          <h4>PC는 어떻게 해석하는가</h4>
+          <ul>
+            <li>true 반환 시 통신 레이어가 <span class="mono">CMD_PONG</span> 성공 응답을 보냅니다.</li>
+            <li>false 반환 시 에러 응답으로 처리됩니다.</li>
+            <li>현재 binary 구현 기준으로 PONG payload는 비어 있습니다.</li>
+          </ul>
+        </div>
+
+        <div class="function-block">
+          <h4>하면 안 되는 일</h4>
+          <ul>
+            <li>PONG 프레임을 app 코드에서 직접 만들지 않습니다.</li>
+            <li>DI_ID, FW 버전 등 추가 payload를 여기서 임의로 붙이지 않습니다.</li>
+            <li>ping 용도를 모션/파일 명령과 섞지 않습니다.</li>
+          </ul>
+        </div>
+
+        <div class="function-block function-block-wide">
+          <h4>레퍼런스 코드 조각</h4>
+          <pre><code>/* 통신 레이어에서의 연결 */
+bool ok = App_Ping();
+if (ok) {
+    /* 응답 가능하면 payload 없는 CMD_PONG 성공 응답 */
+    SendBinaryResponse(ctx, src_id, (uint8_t)CMD_PONG, STATUS_OK, NULL, 0u);
+}</code></pre>
+          <pre><code>/* app 레이어 구현 예시 */
+bool App_Ping(void)
+{
+    /* 최소 구현은 "지금 응답 가능한가"만 판단하면 충분 */
+    return true;
+}</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <section class="function-card" id="functions-app-get-file">
+      <div class="function-head">
+        <span class="badge b-cmd">App 함수</span>
+        <button type="button" class="badge badge-link b-rw" onclick="openCommandDoc('commands-get-file-detail')">called by CMD_GET_FILE</button>
+        <span class="function-title">App_GetFile(const char *path, char *out_content, uint16_t max_len)</span>
+      </div>
+      <div class="function-sub">
+        <span class="mono">CMD_GET_FILE</span> 요청이 들어오면 통신 레이어가 path 문자열을 복원한 뒤
+        <span class="mono">App_GetFile(path, out_content, max_len)</span> 을 호출합니다.
+        이 함수는 설정 파일, Midi 파일, 로그 파일 읽기의 공통 app 진입점입니다.
+      </div>
+
+      <div class="function-grid">
+        <div class="function-block">
+          <h4>언제 호출되는가</h4>
+          <ul>
+            <li>PC가 <span class="mono">CMD_GET_FILE</span> 로 특정 path를 읽고 싶을 때 호출됩니다.</li>
+            <li>통신 레이어가 payload에서 path를 꺼낸 뒤 app 함수만 호출합니다.</li>
+            <li>입력은 <span class="mono">path</span>, 출력은 <span class="mono">out_content</span> 버퍼입니다.</li>
+          </ul>
+        </div>
+
+        <div class="function-block">
+          <h4>대표 사용 항목</h4>
+          <ul>
+            <li><strong>DI_ID 읽기/쓰기</strong> → <span class="mono">Setting/DI_ID.TXT</span></li>
+            <li><strong>반복재생 설정 / 반복횟수 / 모터 초기화 / 소프트 리밋 / 앱솔루트 / 모터 링크</strong></li>
+            <li><span class="mono">Setting/MT_RP.TXT</span>, <span class="mono">MT_CT.TXT</span>, <span class="mono">MT_ST.TXT</span>, <span class="mono">MT_LI.TXT</span>, <span class="mono">MT_AT.TXT</span>, <span class="mono">MT_LK.TXT</span></li>
+            <li><strong>모터 Midi 파라미터 / Midi 페이지 설정</strong> → <span class="mono">Midi/motor/{id}.ini</span>, <span class="mono">Midi/page/data.ini</span></li>
+            <li><strong>로그 읽기</strong> → <span class="mono">Log/BOOT.TXT</span>, <span class="mono">Log/SENSOR.TXT</span></li>
+          </ul>
+        </div>
+
+        <div class="function-block">
+          <h4>app 코드가 해야 할 일</h4>
+          <ul>
+            <li>요청 path가 실제로 읽을 수 있는 파일인지 판단합니다.</li>
+            <li>파일 내용을 <span class="mono">max_len</span> 을 넘지 않게 버퍼에 복사하고 null 종료를 보장합니다.</li>
+            <li>읽기 성공이면 true, 파일 없음 또는 읽기 실패면 false를 반환합니다.</li>
+          </ul>
+        </div>
+
+        <div class="function-block">
+          <h4>하면 안 되는 일</h4>
+          <ul>
+            <li>payload 길이 검증이나 path_len 파싱을 app 코드에서 다시 하지 않습니다.</li>
+            <li>응답 프레임 작성이나 전송을 직접 처리하지 않습니다.</li>
+            <li>쓰기와 검증까지 한 함수에 억지로 합치지 않습니다.</li>
+          </ul>
+        </div>
+
+        <div class="function-block function-block-wide">
+          <h4>레퍼런스 코드 조각</h4>
+          <pre><code>/* 통신 레이어에서의 연결 */
+/* path를 문자열로 복원한 뒤 공통 읽기 함수로 전달 */
+bool ok = App_GetFile(path_buf, content_buf, APP_CONTENT_MAX_LEN);
+if (!ok) {
+    SendErrorResponse(ctx, src_id, (uint8_t)CMD_GET_FILE, ERR_FILE_NOT_FOUND, NULL);
+}</code></pre>
+          <pre><code>/* app 레이어 구현 예시 */
+bool App_GetFile(const char *path, char *out_content, uint16_t max_len)
+{
+    /* max_len 범위 안에서 텍스트 파일을 읽고 null 종료 보장 */
+    return SD_ReadFile(path, out_content, max_len) == 0;
+}</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <section class="function-card" id="functions-app-save-file">
+      <div class="function-head">
+        <span class="badge b-cmd">App 함수</span>
+        <button type="button" class="badge badge-link b-rw" onclick="openCommandDoc('commands-save-file-detail')">called by CMD_SAVE_FILE</button>
+        <span class="function-title">App_SaveFile(const char *path, const char *content)</span>
+      </div>
+      <div class="function-sub">
+        <span class="mono">CMD_SAVE_FILE</span> 요청이 들어오면 통신 레이어가 path와 content 문자열을 복원한 뒤
+        <span class="mono">App_SaveFile(path, content)</span> 을 호출합니다.
+        이 함수는 설정 파일과 Midi 파일 저장의 공통 app 진입점입니다.
+      </div>
+
+      <div class="function-grid">
+        <div class="function-block">
+          <h4>언제 호출되는가</h4>
+          <ul>
+            <li>PC가 <span class="mono">CMD_SAVE_FILE</span> 로 path와 새 content를 함께 보낼 때 호출됩니다.</li>
+            <li>통신 레이어가 path/content를 문자열로 만든 뒤 app 함수만 호출합니다.</li>
+            <li>대표 대상은 설정 파일과 Midi 설정 파일입니다.</li>
+          </ul>
+        </div>
+
+        <div class="function-block">
+          <h4>대표 사용 항목</h4>
+          <ul>
+            <li><strong>DI_ID 읽기/쓰기</strong>, <strong>반복재생 설정</strong>, <strong>반복횟수 설정</strong></li>
+            <li><strong>모터 초기화 설정</strong>, <strong>소프트 리밋</strong>, <strong>앱솔루트 설정</strong>, <strong>모터 링크</strong></li>
+            <li><strong>모터 Midi 파라미터</strong>, <strong>Midi 페이지 설정</strong></li>
+            <li>로그 읽기는 이번 범위에서 저장 대상에 포함하지 않습니다.</li>
+          </ul>
+        </div>
+
+        <div class="function-block">
+          <h4>app 코드가 해야 할 일</h4>
+          <ul>
+            <li>path가 실제 쓰기 가능한 설정/Midi 파일인지 확인합니다.</li>
+            <li>content 문자열을 대상 파일에 그대로 저장합니다.</li>
+            <li>저장 성공이면 true, 실패면 false를 반환합니다.</li>
+          </ul>
+        </div>
+
+        <div class="function-block">
+          <h4>하면 안 되는 일</h4>
+          <ul>
+            <li>content_len 계산이나 payload 검증을 app 코드에서 다시 하지 않습니다.</li>
+            <li>저장 성공 응답을 직접 만들지 않습니다.</li>
+            <li>저장 후 일치 여부 판단까지 여기서 끝내지 않고, 필요하면 Verify 경로를 사용합니다.</li>
+          </ul>
+        </div>
+
+        <div class="function-block function-block-wide">
+          <h4>레퍼런스 코드 조각</h4>
+          <pre><code>/* 통신 레이어에서의 연결 */
+/* path와 content를 복원한 뒤 공통 저장 함수로 전달 */
+bool ok = App_SaveFile(path_buf, content_buf);
+if (!ok) {
+    SendErrorResponse(ctx, src_id, (uint8_t)CMD_SAVE_FILE, ERR_FILE_NOT_FOUND, NULL);
+}</code></pre>
+          <pre><code>/* app 레이어 구현 예시 */
+bool App_SaveFile(const char *path, const char *content)
+{
+    /* 필요하면 app 레이어에서 path whitelist 검사 추가 */
+    /* 받은 문자열을 그대로 파일에 저장 */
+    return SD_WriteFile(path, content) == 0;
+}</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <section class="function-card" id="functions-app-verify-file">
+      <div class="function-head">
+        <span class="badge b-cmd">App 함수</span>
+        <button type="button" class="badge badge-link b-rw" onclick="openCommandDoc('commands-verify-file-detail')">called by CMD_VERIFY_FILE</button>
+        <span class="function-title">App_VerifyFile(const char *path, const char *content, bool *out_match)</span>
+      </div>
+      <div class="function-sub">
+        <span class="mono">CMD_VERIFY_FILE</span> 요청이 들어오면 통신 레이어가 path와 expected content를 복원한 뒤
+        <span class="mono">App_VerifyFile(path, content, &amp;out_match)</span> 을 호출합니다.
+        이 함수는 저장된 파일 원문과 기대 문자열이 같은지 확인하는 검증용 app 진입점입니다.
+      </div>
+
+      <div class="function-grid">
+        <div class="function-block">
+          <h4>언제 호출되는가</h4>
+          <ul>
+            <li>PC가 저장 후 같은 path/content로 검증을 요청할 때 호출됩니다.</li>
+            <li>통신 레이어는 <span class="mono">bool match</span> 변수를 준비해 app 함수에 넘깁니다.</li>
+            <li>대표 대상은 설정 파일과 Midi 파일입니다.</li>
+          </ul>
+        </div>
+
+        <div class="function-block">
+          <h4>app 코드가 해야 할 일</h4>
+          <ul>
+            <li>대상 파일을 읽을 수 있으면 실제 원문과 expected content를 비교합니다.</li>
+            <li>비교를 수행할 수 있으면 true를 반환하고 결과를 <span class="mono">out_match</span> 에 기록합니다.</li>
+            <li>파일을 읽을 수 없으면 false를 반환합니다.</li>
+          </ul>
+        </div>
+
+        <div class="function-block">
+          <h4>PC는 어떻게 해석하는가</h4>
+          <ul>
+            <li>함수가 true를 반환하면 응답 payload의 마지막 1바이트에 match 값이 실립니다.</li>
+            <li><span class="mono">match = 0x01</span> 이면 저장 내용이 기대값과 같습니다.</li>
+            <li><span class="mono">match = 0x00</span> 이면 읽기는 성공했지만 내용은 다릅니다.</li>
+          </ul>
+        </div>
+
+        <div class="function-block">
+          <h4>하면 안 되는 일</h4>
+          <ul>
+            <li>비교 결과를 응답 바이트로 직접 포장하지 않습니다.</li>
+            <li>파일을 읽지 못했는데도 match만 false로 두고 true를 반환하지 않습니다.</li>
+            <li>읽기와 저장 로직을 이 함수에 중복 구현하지 않습니다.</li>
+          </ul>
+        </div>
+
+        <div class="function-block function-block-wide">
+          <h4>레퍼런스 코드 조각</h4>
+          <pre><code>/* 통신 레이어에서의 연결 */
+bool match = false;
+bool ok = App_VerifyFile(path_buf, content_buf, &amp;match);
+if (ok) {
+    /* 성공 시 path와 match(1byte)를 응답에 실어 보냄 */
+}</code></pre>
+          <pre><code>/* app 레이어 구현 예시 */
+bool App_VerifyFile(const char *path, const char *content, bool *out_match)
+{
+    char buffer[APP_CONTENT_MAX_LEN];
+
+    /* 먼저 실제 파일을 읽을 수 있어야 검증 가능 */
+    if (SD_ReadFile(path, buffer, sizeof(buffer)) != 0) {
+        return false;
+    }
+
+    /* 읽은 원문과 기대 문자열이 같은지 비교 */
+    *out_match = (strcmp(buffer, content) == 0);
+    return true;
+}</code></pre>
+        </div>
+      </div>
+    </section>
   </div>
 </div>
 
@@ -697,20 +1318,20 @@ bool App_MotionPlay(uint8_t device_id)
     <tr><td>재생 완료 (PLAY DONE)</td><td><span class="badge b-evt">MCU→PC</span></td><td>—</td></tr>
     <tr><td rowspan="2" style="color:var(--color-text-warning);font-weight:500">초기화</td><td>초기화 상태 (INIT STATUS)</td><td><span class="badge b-evt">MCU→PC</span></td><td><span class="mono">MT_ST, MT_AT</span></td></tr>
     <tr><td>센서 감지 이벤트</td><td><span class="badge b-evt">MCU→PC</span></td><td><span class="mono">Log/SENSOR.TXT</span></td></tr>
-    <tr><td rowspan="7" style="color:var(--color-text-success);font-weight:500">설정 R/W</td><td>DI_ID 읽기/쓰기</td><td><span class="badge b-rw">양방향</span></td><td><span class="mono">Setting/DI_ID.TXT</span></td></tr>
-    <tr><td>반복재생 설정 (MT_RP)</td><td><span class="badge b-rw">양방향</span></td><td><span class="mono">Setting/MT_RP.TXT</span></td></tr>
-    <tr><td>반복횟수 설정 (MT_CT)</td><td><span class="badge b-rw">양방향</span></td><td><span class="mono">Setting/MT_CT.TXT</span></td></tr>
-    <tr><td>모터 초기화 설정 (MT_ST)</td><td><span class="badge b-rw">양방향</span></td><td><span class="mono">Setting/MT_ST.TXT</span></td></tr>
-    <tr><td>소프트 리밋 (MT_LI)</td><td><span class="badge b-rw">양방향</span></td><td><span class="mono">Setting/MT_LI.TXT</span></td></tr>
-    <tr><td>앱솔루트 설정 (MT_AT)</td><td><span class="badge b-rw">양방향</span></td><td><span class="mono">Setting/MT_AT.TXT</span></td></tr>
-    <tr><td>모터 링크 (MT_LK)</td><td><span class="badge b-rw">양방향</span></td><td><span class="mono">Setting/MT_LK.TXT</span></td></tr>
-    <tr><td rowspan="2" style="color:var(--color-text-secondary);font-weight:500">Midi 설정</td><td>모터 Midi 파라미터</td><td><span class="badge b-rw">양방향</span></td><td><span class="mono">Midi/motor/{id}.ini</span></td></tr>
-    <tr><td>Midi 페이지 설정</td><td><span class="badge b-rw">양방향</span></td><td><span class="mono">Midi/page/data.ini</span></td></tr>
-    <tr><td rowspan="5" style="color:var(--color-text-tertiary);font-weight:500">시스템</td><td>장치 발견 / Ping</td><td><span class="badge b-cmd">PC→MCU</span></td><td><span class="mono">Setting/DI_ID.TXT</span></td></tr>
+    <tr><td rowspan="7" style="color:var(--color-text-success);font-weight:500">설정 R/W</td><td><button type="button" class="table-link" onclick="openFunctionDoc('functions-app-get-file')">DI_ID 읽기/쓰기</button></td><td><span class="badge b-rw">양방향</span></td><td><span class="mono">Setting/DI_ID.TXT</span></td></tr>
+    <tr><td><button type="button" class="table-link" onclick="openFunctionDoc('functions-app-get-file')">반복재생 설정 (MT_RP)</button></td><td><span class="badge b-rw">양방향</span></td><td><span class="mono">Setting/MT_RP.TXT</span></td></tr>
+    <tr><td><button type="button" class="table-link" onclick="openFunctionDoc('functions-app-get-file')">반복횟수 설정 (MT_CT)</button></td><td><span class="badge b-rw">양방향</span></td><td><span class="mono">Setting/MT_CT.TXT</span></td></tr>
+    <tr><td><button type="button" class="table-link" onclick="openFunctionDoc('functions-app-get-file')">모터 초기화 설정 (MT_ST)</button></td><td><span class="badge b-rw">양방향</span></td><td><span class="mono">Setting/MT_ST.TXT</span></td></tr>
+    <tr><td><button type="button" class="table-link" onclick="openFunctionDoc('functions-app-get-file')">소프트 리밋 (MT_LI)</button></td><td><span class="badge b-rw">양방향</span></td><td><span class="mono">Setting/MT_LI.TXT</span></td></tr>
+    <tr><td><button type="button" class="table-link" onclick="openFunctionDoc('functions-app-get-file')">앱솔루트 설정 (MT_AT)</button></td><td><span class="badge b-rw">양방향</span></td><td><span class="mono">Setting/MT_AT.TXT</span></td></tr>
+    <tr><td><button type="button" class="table-link" onclick="openFunctionDoc('functions-app-get-file')">모터 링크 (MT_LK)</button></td><td><span class="badge b-rw">양방향</span></td><td><span class="mono">Setting/MT_LK.TXT</span></td></tr>
+    <tr><td rowspan="2" style="color:var(--color-text-secondary);font-weight:500">Midi 설정</td><td><button type="button" class="table-link" onclick="openFunctionDoc('functions-app-get-file')">모터 Midi 파라미터</button></td><td><span class="badge b-rw">양방향</span></td><td><span class="mono">Midi/motor/{id}.ini</span></td></tr>
+    <tr><td><button type="button" class="table-link" onclick="openFunctionDoc('functions-app-get-file')">Midi 페이지 설정</button></td><td><span class="badge b-rw">양방향</span></td><td><span class="mono">Midi/page/data.ini</span></td></tr>
+    <tr><td rowspan="5" style="color:var(--color-text-tertiary);font-weight:500">시스템</td><td><button type="button" class="table-link" onclick="openFunctionDoc('functions-app-ping')">장치 발견 / Ping</button></td><td><span class="badge b-cmd">PC→MCU</span></td><td><span class="mono">Setting/DI_ID.TXT</span></td></tr>
     <tr><td>장치 정보 응답</td><td><span class="badge b-rsp">MCU→PC</span></td><td>—</td></tr>
     <tr><td>MCU 리셋 명령</td><td><span class="badge b-cmd">PC→MCU</span></td><td><span class="mono">Setting/RE_TI.TXT</span></td></tr>
     <tr><td>에러 알림</td><td><span class="badge b-evt">MCU→PC</span></td><td><span class="mono">Log/</span></td></tr>
-    <tr><td>로그 읽기</td><td><span class="badge b-cmd">PC→MCU</span></td><td><span class="mono">Log/BOOT, SENSOR</span></td></tr>
+    <tr><td><button type="button" class="table-link" onclick="openFunctionDoc('functions-app-get-file')">로그 읽기</button></td><td><span class="badge b-cmd">PC→MCU</span></td><td><span class="mono">Log/BOOT, SENSOR</span></td></tr>
   </table>
 </div>
 </div>
@@ -769,10 +1390,10 @@ function applyFunctionCodeHighlighting(){
       return key;
     });
 
-    html = html.replace(/\b(case|if|return|break|true|false)\b/g, '<span class="tok-keyword">$1</span>');
-    html = html.replace(/\b(bool|uint8_t|uint32_t)\b/g, '<span class="tok-type">$1</span>');
-    html = html.replace(/\b(App_[A-Za-z0-9_]+|Motion_[A-Za-z0-9_]+|SendErrorResponse|read_u32le)\b(?=\s*\()/g, '<span class="tok-func">$1</span>');
-    html = html.replace(/\b(MOTION_ACTION_[A-Z_]+|CMD_MOTION_CTRL|ERR_INVALID_INPUT|MY_DEVICE_ID|NULL)\b/g, '<span class="tok-const">$1</span>');
+    html = html.replace(/\b(case|if|return|break|true|false|const)\b/g, '<span class="tok-keyword">$1</span>');
+    html = html.replace(/\b(bool|char|uint8_t|uint16_t|uint32_t)\b/g, '<span class="tok-type">$1</span>');
+    html = html.replace(/\b(App_[A-Za-z0-9_]+|Motion_[A-Za-z0-9_]+|Device_[A-Za-z0-9_]+|SD_[A-Za-z0-9_]+|SendBinaryResponse|SendErrorResponse|read_u32le|strcmp)\b(?=\s*\()/g, '<span class="tok-func">$1</span>');
+    html = html.replace(/\b(MOTION_ACTION_[A-Z_]+|CMD_PING|CMD_PONG|CMD_MOTION_CTRL|CMD_GET_FILE|CMD_SAVE_FILE|CMD_VERIFY_FILE|STATUS_OK|ERR_INVALID_INPUT|ERR_FILE_NOT_FOUND|MY_DEVICE_ID|APP_CONTENT_MAX_LEN|NULL)\b/g, '<span class="tok-const">$1</span>');
     html = html.replace(/\b(0x[0-9A-Fa-f]+|\d+u?)\b/g, '<span class="tok-number">$1</span>');
 
     html = html.replace(/___TOK(\d+)___/g, (_, index) => tokens[Number(index)]);
