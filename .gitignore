@@ -67,3 +67,4 @@ desktop.ini
 # Keep important configuration files
 # !*.ioc
 # !*.ld
+_edge_headless/
