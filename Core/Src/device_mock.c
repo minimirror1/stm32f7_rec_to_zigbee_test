@@ -22,6 +22,24 @@
  * Mock File System Data (with tree structure)
  ******************************************************************************/
 
+static const char k_mock_mt_st_content[] =
+    "AC2,1.1,CCW,36000,0,50,0,199,1,0\n"
+    "AC2,1.2,CCW,36000,0,100,0,199,1,0\n"
+    "AC2,1.3,CCW,36000,0,50,0,199,1,0\n"
+    "AC2,1.4,CCW,36000,0,100,0,199,1,0\n"
+    "AC2,1.5,CCW,36000,0,50,0,199,1,0\n"
+    "AC2,1.7,CCW,36000,0,100,0,199,1,0\n"
+    "AC2,11.1,CW,36000,0,250,0,199,1,0\n"
+    "AC2,11.2,CW,36000,0,250,0,199,1,0\n"
+    "AC2,11.3,CW,36000,0,250,0,199,1,0\n"
+    "AC2,11.4,CW,9000,0,150,0,199,1,0\n"
+    "AC2,11.5,CCW,2100,2048,100,0,199,1,0\n"
+    "AC2,11.6,CW,9000,0,100,0,199,1,0\n"
+    "AC2,11.7,CW,9000,0,100,0,199,1,0\n"
+    "RC,11.8";
+static char g_mock_mt_st_content[APP_CONTENT_MAX_LEN];
+static bool g_mock_mt_st_initialized = false;
+
 /**
  * Mock file entries with tree structure.
  * - depth: 0 = root, 1 = first level subfolder, 2 = second level
@@ -74,7 +92,7 @@ static const struct {
     {"MT_MS.TXT", "Setting/MT_MS.TXT", false, 9, 1, 21},
     {"MT_PL.TXT", "Setting/MT_PL.TXT", false, 9, 1, 21},
     {"MT_RP.TXT", "Setting/MT_RP.TXT", false, 10, 1, 21},
-    {"MT_ST.TXT", "Setting/MT_ST.TXT", false, 10, 1, 21},
+    {"MT_ST.TXT", "Setting/MT_ST.TXT", false, (uint32_t)(sizeof(k_mock_mt_st_content) - 1u), 1, 21},
     {"RE_TI.TXT", "Setting/RE_TI.TXT", false, 10, 1, 21},
 };
 
@@ -111,6 +129,52 @@ static AppPingStatus mock_ping_status = {
     0u,
     5000u
 };
+
+static bool MockBoundedCStrLen(const char *s, size_t max_len, size_t *out_len)
+{
+    size_t i;
+
+    if (s == NULL || out_len == NULL || max_len == 0u) {
+        return false;
+    }
+
+    for (i = 0; i < max_len; i++) {
+        if (s[i] == '\0') {
+            *out_len = i;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+static bool IsMockMtStPath(const char *path)
+{
+    if (path == NULL) {
+        return false;
+    }
+
+    return (strcmp(path, "Setting/MT_ST.TXT") == 0) || (strcmp(path, "MT_ST.TXT") == 0);
+}
+
+static void EnsureMockMtStContentInitialized(void)
+{
+    size_t default_len;
+
+    if (g_mock_mt_st_initialized) {
+        return;
+    }
+
+    default_len = sizeof(k_mock_mt_st_content) - 1u;
+    if (default_len >= sizeof(g_mock_mt_st_content)) {
+        g_mock_mt_st_content[0] = '\0';
+        g_mock_mt_st_initialized = true;
+        return;
+    }
+
+    memcpy(g_mock_mt_st_content, k_mock_mt_st_content, default_len + 1u);
+    g_mock_mt_st_initialized = true;
+}
 
 /*******************************************************************************
  * Mock App_* Implementations
@@ -206,6 +270,13 @@ int App_GetFiles(AppFileInfo *out_files, uint16_t max_count) {
 
         out_files[count].is_directory = mock_files[i].is_directory;
         out_files[count].size = mock_files[i].size;
+        if (strcmp(mock_files[i].path, "Setting/MT_ST.TXT") == 0) {
+            size_t mt_st_len = 0u;
+            EnsureMockMtStContentInitialized();
+            if (MockBoundedCStrLen(g_mock_mt_st_content, APP_CONTENT_MAX_LEN, &mt_st_len)) {
+                out_files[count].size = (uint32_t)mt_st_len;
+            }
+        }
         out_files[count].depth = mock_files[i].depth;
         out_files[count].parent_index = mock_files[i].parent_index;
         count++;
@@ -219,6 +290,21 @@ bool App_GetFile(const char *path, char *out_content, uint16_t max_len) {
         return false;
     }
 
+    if (IsMockMtStPath(path)) {
+        size_t content_len = 0u;
+        EnsureMockMtStContentInitialized();
+        if (!MockBoundedCStrLen(g_mock_mt_st_content, APP_CONTENT_MAX_LEN, &content_len)) {
+            return false;
+        }
+
+        if (content_len + 1u > (size_t)max_len) {
+            return false;
+        }
+
+        memcpy(out_content, g_mock_mt_st_content, content_len + 1u);
+        return true;
+    }
+
     snprintf(out_content, max_len, "Mock content for file: %s", path);
     return true;
 }
@@ -228,14 +314,42 @@ bool App_SaveFile(const char *path, const char *content) {
         return false;
     }
 
-    (void)path;
-    (void)content;
+    if (IsMockMtStPath(path)) {
+        size_t content_len = 0u;
+        EnsureMockMtStContentInitialized();
+
+        if (!MockBoundedCStrLen(content, APP_CONTENT_MAX_LEN, &content_len)) {
+            return false;
+        }
+
+        memcpy(g_mock_mt_st_content, content, content_len + 1u);
+    }
+
     return true;
 }
 
 bool App_VerifyFile(const char *path, const char *content, bool *out_match) {
     if (path == NULL || content == NULL || out_match == NULL) {
         return false;
+    }
+
+    if (IsMockMtStPath(path)) {
+        size_t expected_len = 0u;
+        size_t current_len = 0u;
+
+        EnsureMockMtStContentInitialized();
+        if (!MockBoundedCStrLen(content, APP_CONTENT_MAX_LEN, &expected_len) ||
+            !MockBoundedCStrLen(g_mock_mt_st_content, APP_CONTENT_MAX_LEN, &current_len)) {
+            return false;
+        }
+
+        if (expected_len != current_len) {
+            *out_match = false;
+            return true;
+        }
+
+        *out_match = (memcmp(content, g_mock_mt_st_content, current_len) == 0);
+        return true;
     }
 
     *out_match = true;
