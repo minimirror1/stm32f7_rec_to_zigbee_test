@@ -20,6 +20,18 @@ bool __attribute__((weak)) App_Ping(void) {
     return true;
 }
 
+bool __attribute__((weak)) App_GetPingStatus(AppPingStatus *out_status) {
+    if (out_status == NULL) {
+        return false;
+    }
+
+    out_status->state = APP_PING_STATE_STOPPED;
+    out_status->init_state = 0u;
+    out_status->current_ms = 0u;
+    out_status->total_ms = 0u;
+    return true;
+}
+
 bool __attribute__((weak)) App_Move(uint8_t motor_id, int32_t raw_pos) {
     (void)motor_id;
     (void)raw_pos;

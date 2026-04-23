@@ -105,12 +105,36 @@ static struct {
 #define MOCK_MOTOR_COUNT (sizeof(mock_motors) / sizeof(mock_motors[0]))
 
 static uint32_t mock_state_counter = 0;
+static AppPingStatus mock_ping_status = {
+    APP_PING_STATE_INIT_DONE,
+    0u,
+    0u,
+    5000u
+};
 
 /*******************************************************************************
  * Mock App_* Implementations
  ******************************************************************************/
 
 bool App_Ping(void) {
+    return true;
+}
+
+bool App_GetPingStatus(AppPingStatus *out_status) {
+    if (out_status == NULL) {
+        return false;
+    }
+
+    if (mock_ping_status.state == APP_PING_STATE_PLAYING) {
+        if (mock_ping_status.current_ms + 100u >= mock_ping_status.total_ms) {
+            mock_ping_status.current_ms = mock_ping_status.total_ms;
+            mock_ping_status.state = APP_PING_STATE_STOPPED;
+        } else {
+            mock_ping_status.current_ms += 100u;
+        }
+    }
+
+    *out_status = mock_ping_status;
     return true;
 }
 
@@ -133,22 +157,37 @@ bool App_Move(uint8_t motor_id, int32_t raw_pos) {
 
 bool App_MotionPlay(uint8_t device_id) {
     (void)device_id;
+    mock_ping_status.state = APP_PING_STATE_PLAYING;
+    mock_ping_status.init_state = 0u;
+    if (mock_ping_status.total_ms == 0u) {
+        mock_ping_status.total_ms = 5000u;
+    }
+    if (mock_ping_status.current_ms >= mock_ping_status.total_ms) {
+        mock_ping_status.current_ms = 0u;
+    }
     return true;
 }
 
 bool App_MotionStop(uint8_t device_id) {
     (void)device_id;
+    mock_ping_status.state = APP_PING_STATE_STOPPED;
+    mock_ping_status.current_ms = 0u;
     return true;
 }
 
 bool App_MotionPause(uint8_t device_id) {
     (void)device_id;
+    mock_ping_status.state = APP_PING_STATE_STOPPED;
     return true;
 }
 
 bool App_MotionSeek(uint8_t device_id, uint32_t time_ms) {
     (void)device_id;
-    (void)time_ms;
+    if (time_ms > mock_ping_status.total_ms) {
+        mock_ping_status.current_ms = mock_ping_status.total_ms;
+    } else {
+        mock_ping_status.current_ms = time_ms;
+    }
     return true;
 }
 
