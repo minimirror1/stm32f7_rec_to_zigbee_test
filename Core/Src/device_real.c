@@ -20,6 +20,11 @@ bool __attribute__((weak)) App_Ping(void) {
     return true;
 }
 
+bool __attribute__((weak)) App_SetHostDateTime(const AppHostDateTime *host_time) {
+    (void)host_time;
+    return true;
+}
+
 bool __attribute__((weak)) App_GetPingStatus(AppPingStatus *out_status) {
     if (out_status == NULL) {
         return false;

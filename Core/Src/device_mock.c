@@ -129,6 +129,8 @@ static AppPingStatus mock_ping_status = {
     0u,
     5000u
 };
+static AppHostDateTime mock_host_time;
+static bool mock_host_time_valid = false;
 
 static bool MockBoundedCStrLen(const char *s, size_t max_len, size_t *out_len)
 {
@@ -181,6 +183,16 @@ static void EnsureMockMtStContentInitialized(void)
  ******************************************************************************/
 
 bool App_Ping(void) {
+    return true;
+}
+
+bool App_SetHostDateTime(const AppHostDateTime *host_time) {
+    if (host_time == NULL) {
+        return false;
+    }
+
+    mock_host_time = *host_time;
+    mock_host_time_valid = true;
     return true;
 }
 
