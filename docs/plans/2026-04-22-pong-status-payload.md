@@ -41,7 +41,7 @@ Before implementation, update the code path so the intended behavior is explicit
 **Step 2: Verify the old code still shows the gap**
 
 Run:
-`rg -n "SendBinaryResponse\\(ctx, src_id, \\(uint8_t\\)CMD_PONG, STATUS_OK, NULL, 0u\\)|HandlePing|CMD_PONG" Lib\\stm32_json_com\\Src\\binary_com.c`
+`rg -n "SendBinaryResponse\\(ctx, src_id, \\(uint8_t\\)CMD_PONG, BIN_STATUS_OK, NULL, 0u\\)|HandlePing|CMD_PONG" Lib\\stm32_json_com\\Src\\binary_com.c`
 
 Expected:
 - shows the old payload-less response before the final implementation pass
