@@ -115,9 +115,9 @@ static struct {
     int32_t min_raw;
     int32_t max_raw;
 } mock_motors[] = {
-    {1, 1, 1, APP_MOTOR_TYPE_SERVO, APP_MOTOR_STATUS_NORMAL, 2048, 0.5f, 0.0f, 180.0f, 0, 3072},
-    {2, 1, 2, APP_MOTOR_TYPE_DC, APP_MOTOR_STATUS_ERROR, 1536, 1.0f, -90.0f, 90.0f, 0, 4095},
-    {3, 2, 1, APP_MOTOR_TYPE_STEPPER, APP_MOTOR_STATUS_NORMAL, 1024, 0.2f, 0.0f, 360.0f, 0, 4095},
+    {1, 1, 1, APP_MOTOR_TYPE_RC, APP_MOTOR_STATUS_NORMAL, 2048, 0.5f, 0.0f, 180.0f, 0, 3072},
+    {2, 1, 2, APP_MOTOR_TYPE_AC, APP_MOTOR_STATUS_ERROR, 1536, 1.0f, -90.0f, 90.0f, 0, 4095},
+    {3, 2, 1, APP_MOTOR_TYPE_BL, APP_MOTOR_STATUS_NORMAL, 1024, 0.2f, 0.0f, 360.0f, 0, 4095},
 };
 
 #define MOCK_MOTOR_COUNT (sizeof(mock_motors) / sizeof(mock_motors[0]))
