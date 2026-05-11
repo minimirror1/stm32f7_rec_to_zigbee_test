@@ -30,4 +30,16 @@ if ($deviceMock -notmatch "\.power_status\s*=\s*1u") {
     throw "Mock AppPingStatus should report power ON"
 }
 
+if ($deviceMock -notmatch "MOCK_POWER_TOGGLE_INTERVAL_MS\s+5000u") {
+    throw "Mock power_status must use a 5000 ms toggle interval"
+}
+
+if ($deviceMock -notmatch "HAL_GetTick\(\)") {
+    throw "Mock power_status toggle must be based on HAL_GetTick"
+}
+
+if ($deviceMock -notmatch "mock_ping_status\.power_status\s*\^=\s*1u") {
+    throw "Mock power_status must toggle between ON and OFF"
+}
+
 Write-Host "PONG power_status contract check passed."
