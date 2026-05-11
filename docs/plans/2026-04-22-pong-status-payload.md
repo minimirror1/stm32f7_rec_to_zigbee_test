@@ -2,9 +2,9 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Make `CMD_PING` return a `CMD_PONG` payload containing state, init state, current motion time, and total motion time.
+**Goal:** Make `CMD_PING` return a `CMD_PONG` payload containing state, init state, current motion time, total motion time, and power status.
 
-**Architecture:** Keep `App_Ping(void)` as the liveness check, and add a separate HAL data-provider struct/function for the PONG status snapshot. `binary_com.c` will call the new provider, serialize a fixed 10-byte payload in little-endian order, and send it in the normal binary response path. Mock and weak real implementations will supply safe default values.
+**Architecture:** Keep `App_Ping(void)` as the liveness check, and add a separate HAL data-provider struct/function for the PONG status snapshot. `binary_com.c` will call the new provider, serialize a fixed 11-byte payload in little-endian order, and send it in the normal binary response path. Mock and weak real implementations will supply safe default values.
 
 **Tech Stack:** STM32 C firmware, `binary_com.c`, weak HAL functions in `device_hal.h`, mock device layer in `Core/Src/device_mock.c`.
 
@@ -17,7 +17,7 @@
 
 Add:
 - a motion/ping status enum for `0x00..0x04`
-- a struct that contains `state`, `init_state`, `current_ms`, `total_ms`
+- a struct that contains `state`, `init_state`, `current_ms`, `total_ms`, `power_status`
 - a new `bool App_GetPingStatus(AppPingStatus *out_status)` declaration
 
 **Step 2: Keep the contract minimal**
@@ -64,7 +64,7 @@ Write a small helper that appends:
 Flow:
 - `App_Ping()` must still gate the response
 - if alive, call `App_GetPingStatus(&status)`
-- if that succeeds, send `CMD_PONG` with 10-byte payload
+- if that succeeds, send `CMD_PONG` with 11-byte payload
 - if that fails, send an error response
 
 ### Task 4: Implement default HAL providers
@@ -80,6 +80,7 @@ Return a safe snapshot:
 - `init_state = 0`
 - `current_ms = 0`
 - `total_ms = 0`
+- `power_status = 0`
 
 **Step 2: Add mock implementation**
 
@@ -96,12 +97,12 @@ Return deterministic mock values, ideally reflecting recent motion commands enou
 **Step 1: Run verification searches**
 
 Run:
-`rg -n "App_GetPingStatus|APP_PING_STATE_|current_ms|total_ms|payload_len = 10|CMD_PONG" Lib\\stm32_json_com\\Inc\\device_hal.h Lib\\stm32_json_com\\Src\\binary_com.c Core\\Src\\device_mock.c Core\\Src\\device_real.c`
+`rg -n "App_GetPingStatus|APP_PING_STATE_|current_ms|total_ms|power_status|payload_len = 11|CMD_PONG" Lib\\stm32_json_com\\Inc\\device_hal.h Lib\\stm32_json_com\\Src\\binary_com.c Core\\Src\\device_mock.c Core\\Src\\device_real.c`
 
 Expected:
 - new HAL type/function exists
 - `CMD_PONG` path no longer uses `NULL, 0u`
-- serialization references the 10-byte payload fields
+- serialization references the 11-byte payload fields
 
 **Step 2: Run a targeted build or compile-equivalent verification if available**
 

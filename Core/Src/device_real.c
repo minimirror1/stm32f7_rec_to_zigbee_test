@@ -34,6 +34,7 @@ bool __attribute__((weak)) App_GetPingStatus(AppPingStatus *out_status) {
     out_status->init_state = 0u;
     out_status->current_ms = 0u;
     out_status->total_ms = 0u;
+    out_status->power_status = 0u;
     return true;
 }
 

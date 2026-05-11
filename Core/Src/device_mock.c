@@ -124,10 +124,11 @@ static struct {
 
 static uint32_t mock_state_counter = 0;
 static AppPingStatus mock_ping_status = {
-    APP_PING_STATE_INIT_DONE,
-    0u,
-    0u,
-    5000u
+    .state = APP_PING_STATE_INIT_DONE,
+    .init_state = 0u,
+    .current_ms = 0u,
+    .total_ms = 5000u,
+    .power_status = 1u
 };
 static AppHostDateTime mock_host_time;
 static bool mock_host_time_valid = false;
