@@ -11,6 +11,14 @@
  */
 
 #include "device_hal.h"
+#include "main.h"
+
+#define POWER_ACTION_OFF_VALUE     0x00u
+#define POWER_ACTION_ON_VALUE      0x01u
+#define POWER_ACTION_REBOOT_VALUE  0x02u
+#define POWER_REBOOT_DELAY_MS      500u
+
+static uint8_t g_power_status = POWER_ACTION_OFF_VALUE;
 
 /*******************************************************************************
  * Basic Commands
@@ -34,7 +42,7 @@ bool __attribute__((weak)) App_GetPingStatus(AppPingStatus *out_status) {
     out_status->init_state = 0u;
     out_status->current_ms = 0u;
     out_status->total_ms = 0u;
-    out_status->power_status = 0u;
+    out_status->power_status = g_power_status;
     return true;
 }
 
@@ -67,6 +75,41 @@ bool __attribute__((weak)) App_MotionSeek(uint8_t device_id, uint32_t time_ms) {
     (void)device_id;
     (void)time_ms;
     return false;
+}
+
+/*******************************************************************************
+ * Power Control Commands
+ ******************************************************************************/
+
+void __attribute__((weak)) power_output_off(void) {
+    HAL_GPIO_WritePin(LD_PWERCTR_GPIO_Port, LD_PWERCTR_Pin, GPIO_PIN_RESET);
+    g_power_status = POWER_ACTION_OFF_VALUE;
+}
+
+void __attribute__((weak)) power_output_on(void) {
+    HAL_GPIO_WritePin(LD_PWERCTR_GPIO_Port, LD_PWERCTR_Pin, GPIO_PIN_SET);
+    g_power_status = POWER_ACTION_ON_VALUE;
+}
+
+bool __attribute__((weak)) App_PowerControl(uint8_t action) {
+    switch (action) {
+        case POWER_ACTION_OFF_VALUE:
+            power_output_off();
+            return true;
+
+        case POWER_ACTION_ON_VALUE:
+            power_output_on();
+            return true;
+
+        case POWER_ACTION_REBOOT_VALUE:
+            power_output_off();
+            HAL_Delay(POWER_REBOOT_DELAY_MS);
+            power_output_on();
+            return true;
+
+        default:
+            return false;
+    }
 }
 
 /*******************************************************************************
