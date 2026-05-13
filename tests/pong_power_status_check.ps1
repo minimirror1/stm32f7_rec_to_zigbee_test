@@ -1,8 +1,8 @@
 $ErrorActionPreference = "Stop"
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
-$binaryComSource = Get-Content -Raw -LiteralPath (Join-Path $repoRoot "Lib/stm32_json_com/Src/binary_com.c")
-$deviceHal = Get-Content -Raw -LiteralPath (Join-Path $repoRoot "Lib/stm32_json_com/Inc/device_hal.h")
+$binaryComSource = Get-Content -Raw -LiteralPath (Join-Path $repoRoot "Lib/stm32_xbee_com/Src/binary_com.c")
+$deviceHal = Get-Content -Raw -LiteralPath (Join-Path $repoRoot "Lib/stm32_xbee_com/Inc/device_hal.h")
 $deviceReal = Get-Content -Raw -LiteralPath (Join-Path $repoRoot "Core/Src/device_real.c")
 $deviceMock = Get-Content -Raw -LiteralPath (Join-Path $repoRoot "Core/Src/device_mock.c")
 
@@ -22,24 +22,22 @@ if ($binaryComSource -notmatch "write_u8\(p,\s*status->power_status\)") {
     throw "PONG serialization must append power_status as the final byte"
 }
 
-if ($deviceReal -notmatch "out_status->power_status\s*=\s*0u;") {
-    throw "Weak real App_GetPingStatus default must report power OFF"
+if ($deviceReal -notmatch "static\s+uint8_t\s+g_power_status\s*=\s*POWER_ACTION_OFF_VALUE;" -or
+    $deviceReal -notmatch "out_status->power_status\s*=\s*g_power_status\s*;") {
+    throw "Weak real App_GetPingStatus must report the current power output state, initialized OFF"
 }
 
 if ($deviceMock -notmatch "\.power_status\s*=\s*1u") {
     throw "Mock AppPingStatus should report power ON"
 }
 
-if ($deviceMock -notmatch "MOCK_POWER_TOGGLE_INTERVAL_MS\s+5000u") {
-    throw "Mock power_status must use a 5000 ms toggle interval"
+if ($deviceMock -match "mock_ping_status\.power_status\s*\^=" -or
+    $deviceMock -match "UpdateMockPowerStatus\s*\(\s*\)\s*;") {
+    throw "Mock power_status must be controlled by App_PowerControl, not automatic toggling"
 }
 
-if ($deviceMock -notmatch "HAL_GetTick\(\)") {
-    throw "Mock power_status toggle must be based on HAL_GetTick"
-}
-
-if ($deviceMock -notmatch "mock_ping_status\.power_status\s*\^=\s*1u") {
-    throw "Mock power_status must toggle between ON and OFF"
+if ($deviceMock -notmatch "mock_ping_status\.power_status\s*=\s*action") {
+    throw "Mock App_PowerControl must update the PONG power_status field"
 }
 
 Write-Host "PONG power_status contract check passed."

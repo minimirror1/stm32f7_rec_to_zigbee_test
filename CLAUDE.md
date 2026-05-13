@@ -27,7 +27,7 @@ cd Debug && make clean && make all
 ```text
 Application (device_mock.c / device_real.c)
     <-> App_* 함수 인터페이스
-Communication (Lib/stm32_json_com/)
+Communication (Lib/stm32_xbee_com/)
     - binary_com.c: Binary 명령 처리
     - xbee_api.c: XBee API Mode 2 파서
     - fragment_rx/tx.c: 대용량 메시지 분할/재조립
@@ -45,7 +45,7 @@ HAL Layer (STM32F7xx_HAL_Driver)
 | `Core/Src/main.c` | 시스템 초기화 및 메인 루프 |
 | `Core/Src/device_mock.c` | 테스트용 모의 디바이스 (`USE_MOCK_DEVICE` 정의 시) |
 | `Core/Src/device_real.c` | 실제 구현을 위한 `__weak` 스텁 함수들 |
-| `Lib/stm32_json_com/` | Binary 통신 라이브러리 (Git 서브모듈) |
+| `Lib/stm32_xbee_com/` | Binary 통신 라이브러리 (Git 서브모듈) |
 
 ## Device Implementation Pattern
 
@@ -78,7 +78,7 @@ bool App_Move(uint8_t motor_id, int32_t raw_pos) {
 git submodule update --init --recursive
 
 # 서브모듈 업데이트
-git submodule update --remote Lib/stm32_json_com
+git submodule update --remote Lib/stm32_xbee_com
 ```
 
 ## Main Loop Timing

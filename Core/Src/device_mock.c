@@ -121,10 +121,7 @@ static struct {
 };
 
 #define MOCK_MOTOR_COUNT (sizeof(mock_motors) / sizeof(mock_motors[0]))
-#define MOCK_POWER_TOGGLE_INTERVAL_MS 5000u
-
 static uint32_t mock_state_counter = 0;
-static uint32_t mock_power_last_toggle_ms = 0u;
 static AppPingStatus mock_ping_status = {
     .state = APP_PING_STATE_INIT_DONE,
     .init_state = 0u,
@@ -151,22 +148,6 @@ static bool MockBoundedCStrLen(const char *s, size_t max_len, size_t *out_len)
     }
 
     return false;
-}
-
-static void UpdateMockPowerStatus(void)
-{
-    uint32_t now_ms = HAL_GetTick();
-    uint32_t elapsed_ms = now_ms - mock_power_last_toggle_ms;
-    uint32_t intervals = elapsed_ms / MOCK_POWER_TOGGLE_INTERVAL_MS;
-
-    if (intervals == 0u) {
-        return;
-    }
-
-    if ((intervals & 1u) != 0u) {
-        mock_ping_status.power_status ^= 1u;
-    }
-    mock_power_last_toggle_ms += intervals * MOCK_POWER_TOGGLE_INTERVAL_MS;
 }
 
 static bool IsMockMtStPath(const char *path)
@@ -219,8 +200,6 @@ bool App_GetPingStatus(AppPingStatus *out_status) {
     if (out_status == NULL) {
         return false;
     }
-
-    UpdateMockPowerStatus();
 
     if (mock_ping_status.state == APP_PING_STATE_PLAYING) {
         if (mock_ping_status.current_ms + 100u >= mock_ping_status.total_ms) {
@@ -286,6 +265,23 @@ bool App_MotionSeek(uint8_t device_id, uint32_t time_ms) {
         mock_ping_status.current_ms = time_ms;
     }
     return true;
+}
+
+bool App_PowerControl(uint8_t action) {
+    switch (action) {
+        case 0x00u:
+        case 0x01u:
+            mock_ping_status.power_status = action;
+            return true;
+
+        case 0x02u:
+            mock_ping_status.power_status = 0x00u;
+            mock_ping_status.power_status = 0x01u;
+            return true;
+
+        default:
+            return false;
+    }
 }
 
 int App_GetFiles(AppFileInfo *out_files, uint16_t max_count) {
