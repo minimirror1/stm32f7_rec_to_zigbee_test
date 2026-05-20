@@ -131,6 +131,9 @@ static AppPingStatus mock_ping_status = {
 };
 static AppHostDateTime mock_host_time;
 static bool mock_host_time_valid = false;
+static uint8_t g_mock_operate_time_payload[APP_OPERATE_TIME_PAYLOAD_SIZE];
+static AppOperateTimeSchedule g_mock_operate_time_schedule;
+static bool g_mock_operate_time_valid = false;
 
 static bool MockBoundedCStrLen(const char *s, size_t max_len, size_t *out_len)
 {
@@ -148,6 +151,44 @@ static bool MockBoundedCStrLen(const char *s, size_t max_len, size_t *out_len)
     }
 
     return false;
+}
+
+static uint16_t MockReadU16Le(const uint8_t *p)
+{
+    return (uint16_t)((uint16_t)p[0] | ((uint16_t)p[1] << 8u));
+}
+
+static uint32_t MockReadU32Le(const uint8_t *p)
+{
+    return (uint32_t)p[0]
+         | ((uint32_t)p[1] << 8u)
+         | ((uint32_t)p[2] << 16u)
+         | ((uint32_t)p[3] << 24u);
+}
+
+static bool ParseMockOperateTimePayload(const uint8_t *payload,
+                                        uint16_t payload_len,
+                                        AppOperateTimeSchedule *out_schedule)
+{
+    if (payload == NULL ||
+        out_schedule == NULL ||
+        payload_len != APP_OPERATE_TIME_PAYLOAD_SIZE) {
+        return false;
+    }
+
+    out_schedule->format_version = payload[0];
+    out_schedule->timezone_offset_min = (int16_t)MockReadU16Le(payload + 1u);
+    out_schedule->schedule_checksum = MockReadU32Le(payload + 3u);
+    out_schedule->day_count = payload[7];
+
+    for (uint8_t i = 0u; i < 7u; i++) {
+        const uint8_t *row = payload + 8u + ((uint16_t)i * 5u);
+        out_schedule->rows[i].day_of_week = row[0];
+        out_schedule->rows[i].open_minutes = MockReadU16Le(row + 1u);
+        out_schedule->rows[i].close_minutes = MockReadU16Le(row + 3u);
+    }
+
+    return true;
 }
 
 static bool IsMockMtStPath(const char *path)
@@ -382,6 +423,31 @@ bool App_VerifyFile(const char *path, const char *content, bool *out_match) {
     }
 
     *out_match = true;
+    return true;
+}
+
+bool App_SetOperateTime(const uint8_t *payload, uint16_t payload_len) {
+    if (payload == NULL || payload_len != APP_OPERATE_TIME_PAYLOAD_SIZE) {
+        return false;
+    }
+    if (!ParseMockOperateTimePayload(payload, payload_len, &g_mock_operate_time_schedule)) {
+        return false;
+    }
+
+    memcpy(g_mock_operate_time_payload, payload, APP_OPERATE_TIME_PAYLOAD_SIZE);
+    g_mock_operate_time_valid = true;
+    return true;
+}
+
+bool App_GetOperateTime(uint8_t *out_payload, uint16_t max_len, uint16_t *out_len) {
+    if (out_payload == NULL || out_len == NULL ||
+        max_len < APP_OPERATE_TIME_PAYLOAD_SIZE ||
+        !g_mock_operate_time_valid) {
+        return false;
+    }
+
+    memcpy(out_payload, g_mock_operate_time_payload, APP_OPERATE_TIME_PAYLOAD_SIZE);
+    *out_len = APP_OPERATE_TIME_PAYLOAD_SIZE;
     return true;
 }
 

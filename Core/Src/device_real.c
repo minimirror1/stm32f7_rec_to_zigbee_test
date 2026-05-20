@@ -142,6 +142,19 @@ bool __attribute__((weak)) App_VerifyFile(const char *path, const char *content,
     return false;
 }
 
+bool __attribute__((weak)) App_SetOperateTime(const uint8_t *payload, uint16_t payload_len) {
+    (void)payload;
+    (void)payload_len;
+    return false;
+}
+
+bool __attribute__((weak)) App_GetOperateTime(uint8_t *out_payload, uint16_t max_len, uint16_t *out_len) {
+    (void)out_payload;
+    (void)max_len;
+    (void)out_len;
+    return false;
+}
+
 /*******************************************************************************
  * Motor Commands
  ******************************************************************************/
