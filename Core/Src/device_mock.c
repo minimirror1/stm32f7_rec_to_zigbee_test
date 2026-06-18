@@ -129,6 +129,7 @@ static AppPingStatus mock_ping_status = {
     .total_ms = 5000u,
     .power_status = 1u
 };
+static bool g_mock_motion_repeat_play = false;
 static AppHostDateTime mock_host_time;
 static bool mock_host_time_valid = false;
 static uint8_t g_mock_operate_time_payload[APP_OPERATE_TIME_PAYLOAD_SIZE];
@@ -244,8 +245,13 @@ bool App_GetPingStatus(AppPingStatus *out_status) {
 
     if (mock_ping_status.state == APP_PING_STATE_PLAYING) {
         if (mock_ping_status.current_ms + 100u >= mock_ping_status.total_ms) {
-            mock_ping_status.current_ms = mock_ping_status.total_ms;
-            mock_ping_status.state = APP_PING_STATE_STOPPED;
+            if (g_mock_motion_repeat_play) {
+                mock_ping_status.current_ms = 0u;
+                mock_ping_status.state = APP_PING_STATE_PLAYING;
+            } else {
+                mock_ping_status.current_ms = mock_ping_status.total_ms;
+                mock_ping_status.state = APP_PING_STATE_STOPPED;
+            }
         } else {
             mock_ping_status.current_ms += 100u;
         }
@@ -274,6 +280,7 @@ bool App_Move(uint8_t motor_id, int32_t raw_pos) {
 
 bool App_MotionPlay(uint8_t device_id) {
     (void)device_id;
+    g_mock_motion_repeat_play = false;
     mock_ping_status.state = APP_PING_STATE_PLAYING;
     mock_ping_status.init_state = 0u;
     if (mock_ping_status.total_ms == 0u) {
@@ -285,8 +292,24 @@ bool App_MotionPlay(uint8_t device_id) {
     return true;
 }
 
+bool App_MotionRepeatPlay(uint8_t device_id) {
+    (void)device_id;
+    bool was_stopped = (mock_ping_status.state == APP_PING_STATE_STOPPED);
+    g_mock_motion_repeat_play = true;
+    mock_ping_status.state = APP_PING_STATE_PLAYING;
+    mock_ping_status.init_state = 0u;
+    if (mock_ping_status.total_ms == 0u) {
+        mock_ping_status.total_ms = 5000u;
+    }
+    if (was_stopped || mock_ping_status.current_ms >= mock_ping_status.total_ms) {
+        mock_ping_status.current_ms = 0u;
+    }
+    return true;
+}
+
 bool App_MotionStop(uint8_t device_id) {
     (void)device_id;
+    g_mock_motion_repeat_play = false;
     mock_ping_status.state = APP_PING_STATE_STOPPED;
     mock_ping_status.current_ms = 0u;
     return true;

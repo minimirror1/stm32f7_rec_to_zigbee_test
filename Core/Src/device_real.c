@@ -61,6 +61,11 @@ bool __attribute__((weak)) App_MotionPlay(uint8_t device_id) {
     return false;
 }
 
+bool __attribute__((weak)) App_MotionRepeatPlay(uint8_t device_id) {
+    (void)device_id;
+    return false;
+}
+
 bool __attribute__((weak)) App_MotionStop(uint8_t device_id) {
     (void)device_id;
     return false;
