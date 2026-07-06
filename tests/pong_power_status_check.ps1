@@ -6,8 +6,8 @@ $deviceHal = Get-Content -Raw -LiteralPath (Join-Path $repoRoot "Lib/stm32_xbee_
 $deviceReal = Get-Content -Raw -LiteralPath (Join-Path $repoRoot "Core/Src/device_real.c")
 $deviceMock = Get-Content -Raw -LiteralPath (Join-Path $repoRoot "Core/Src/device_mock.c")
 
-if ($binaryComSource -notmatch "#define\s+BIN_PONG_PAYLOAD_SIZE\s+11u") {
-    throw "PONG payload size must be 11 bytes when power_status is included"
+if ($binaryComSource -notmatch "#define\s+BIN_PONG_PAYLOAD_SIZE\s+12u") {
+    throw "PONG payload size must be 12 bytes when power_status and error_status are included"
 }
 
 if ($deviceHal -notmatch "uint8_t\s+power_status;") {
@@ -19,7 +19,7 @@ if ($deviceHal -notmatch "power_status\(1\)") {
 }
 
 if ($binaryComSource -notmatch "write_u8\(p,\s*status->power_status\)") {
-    throw "PONG serialization must append power_status as the final byte"
+    throw "PONG serialization must include power_status"
 }
 
 if ($deviceReal -notmatch "static\s+uint8_t\s+g_power_status\s*=\s*POWER_ACTION_OFF_VALUE;" -or

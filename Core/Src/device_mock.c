@@ -127,7 +127,8 @@ static AppPingStatus mock_ping_status = {
     .init_state = 0u,
     .current_ms = 0u,
     .total_ms = 5000u,
-    .power_status = 1u
+    .power_status = 1u,
+    .error_status = 0x01u
 };
 static bool g_mock_motion_repeat_play = false;
 static AppHostDateTime mock_host_time;
@@ -346,6 +347,18 @@ bool App_PowerControl(uint8_t action) {
         default:
             return false;
     }
+}
+
+bool App_ErrorClear(void) {
+    mock_ping_status.error_status = 0x00u;
+
+    for (size_t i = 0; i < MOCK_MOTOR_COUNT; i++) {
+        if (mock_motors[i].status == APP_MOTOR_STATUS_ERROR) {
+            mock_motors[i].status = APP_MOTOR_STATUS_NORMAL;
+        }
+    }
+
+    return true;
 }
 
 int App_GetFiles(AppFileInfo *out_files, uint16_t max_count) {

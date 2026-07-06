@@ -19,6 +19,7 @@
 #define POWER_REBOOT_DELAY_MS      500u
 
 static uint8_t g_power_status = POWER_ACTION_OFF_VALUE;
+static uint8_t g_error_status = 0x00u;
 
 /*******************************************************************************
  * Basic Commands
@@ -43,6 +44,7 @@ bool __attribute__((weak)) App_GetPingStatus(AppPingStatus *out_status) {
     out_status->current_ms = 0u;
     out_status->total_ms = 0u;
     out_status->power_status = g_power_status;
+    out_status->error_status = g_error_status;
     return true;
 }
 
@@ -115,6 +117,11 @@ bool __attribute__((weak)) App_PowerControl(uint8_t action) {
         default:
             return false;
     }
+}
+
+bool __attribute__((weak)) App_ErrorClear(void) {
+    g_error_status = 0x00u;
+    return true;
 }
 
 /*******************************************************************************
