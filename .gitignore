@@ -68,3 +68,4 @@ desktop.ini
 # !*.ioc
 # !*.ld
 _edge_headless/
+.visual/

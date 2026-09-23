@@ -415,6 +415,29 @@ bool App_GetFile(const char *path, char *out_content, uint16_t max_len) {
     return true;
 }
 
+int32_t App_GetFileSize(const char *path) {
+    if (path == NULL) {
+        return -1;
+    }
+
+    if (IsMockMtStPath(path)) {
+        size_t content_len = 0u;
+        EnsureMockMtStContentInitialized();
+        if (!MockBoundedCStrLen(g_mock_mt_st_content, APP_CONTENT_MAX_LEN, &content_len)) {
+            return -1;
+        }
+        return (int32_t)content_len;
+    }
+
+    for (size_t i = 0; i < MOCK_FILE_COUNT; i++) {
+        if (!mock_files[i].is_directory && strcmp(path, mock_files[i].path) == 0) {
+            return (int32_t)mock_files[i].size;
+        }
+    }
+
+    return -1;
+}
+
 bool App_SaveFile(const char *path, const char *content) {
     if (path == NULL || content == NULL) {
         return false;

@@ -95,5 +95,6 @@ git submodule update --remote Lib/stm32_xbee_com
 ## Size Limits
 
 - Fragment TX 버퍼: 4096 bytes
+- 파일 내용: 2048 bytes (`APP_CONTENT_MAX_LEN`, NUL 포함 → 실제 최대 2047 bytes)
 - 파일 목록: 64개
 - 모터 수: 32개

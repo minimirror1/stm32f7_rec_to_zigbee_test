@@ -141,6 +141,11 @@ bool __attribute__((weak)) App_GetFile(const char *path, char *out_content, uint
     return false;
 }
 
+int32_t __attribute__((weak)) App_GetFileSize(const char *path) {
+    (void)path;
+    return -1;
+}
+
 bool __attribute__((weak)) App_SaveFile(const char *path, const char *content) {
     (void)path;
     (void)content;
